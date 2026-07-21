@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext, ROLE_USERS } from '../context/AppContext';
 
 const Layout = () => {
   const { currentRole, setCurrentRole, currentUser, nominations } = useAppContext();
@@ -68,8 +68,8 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Design Generator — Admin & Leadership only */}
-          {(currentRole === 'Admin' || currentRole === 'Leadership') && (
+          {/* Design Generator — Admin only */}
+          {currentRole === 'Admin' && (
             <NavLink to="/generator" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Palette size={20} />
               Design Generator
@@ -107,10 +107,10 @@ const Layout = () => {
                 value={currentRole}
                 onChange={(e) => handleRoleChange(e.target.value)}
               >
-                <option value="User">User (Priya Sharma)</option>
-                <option value="PM">PM / Manager</option>
-                <option value="Admin">Admin</option>
-                <option value="Leadership">Leadership</option>
+                <option value="User">User ({ROLE_USERS.User})</option>
+                <option value="PM">PM / Manager ({ROLE_USERS.PM})</option>
+                <option value="Admin">Admin ({ROLE_USERS.Admin})</option>
+                <option value="Leadership">Leadership ({ROLE_USERS.Leadership})</option>
               </select>
             </div>
 

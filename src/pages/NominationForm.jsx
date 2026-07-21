@@ -3,14 +3,14 @@ import { useAppContext, PM_TEAM } from '../context/AppContext';
 import { Send } from 'lucide-react';
 
 const NominationForm = () => {
-  const { addNomination } = useAppContext();
+  const { addNomination, currentRole } = useAppContext();
   const [formData, setFormData] = useState({ name: '', category: 'Innovation', reason: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.name && formData.reason) {
-      addNomination(formData);
+      addNomination(formData, currentRole);
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);

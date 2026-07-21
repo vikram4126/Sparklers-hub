@@ -14,7 +14,7 @@ import SelfNominate from './pages/SelfNominate';
 const RoleBasedHome = () => {
   const { currentRole } = useAppContext();
   switch (currentRole) {
-    case 'Admin':      return <AdminVerification />;
+    case 'Admin':      return <UserDashboard />;
     case 'PM':         return <UserDashboard />;
     case 'Leadership': return <LeadershipView />;
     default:           return <UserDashboard />;

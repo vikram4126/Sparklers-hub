@@ -11,6 +11,14 @@ export const PM_TEAM = ['Priya Sharma', 'Rahul Verma', 'Anjali Singh', 'Rohit Ku
 
 export const CATEGORIES = ['Innovation', 'Team Player', 'Extra Mile', 'Customer Success'];
 
+// Each role has its own identity
+export const ROLE_USERS = {
+  User: 'Priya Sharma',
+  PM: 'Vikram Patel',
+  Admin: 'Sunita Rao',
+  Leadership: 'Deepak Joshi'
+};
+
 let _id = 100;
 const mkNom = (name, category, reason, status, dateStr, submittedBy = 'PM') => ({
   id: _id++,
@@ -141,19 +149,61 @@ export const AppProvider = ({ children }) => {
   });
 
   const [currentRole, setCurrentRole] = useState('User');
-  const [currentUser, setCurrentUser] = useState('Priya Sharma');
+  const [currentUser, setCurrentUser] = useState(ROLE_USERS['User']);
+
+  // Auto-sync user name when role changes
+  useEffect(() => {
+    setCurrentUser(ROLE_USERS[currentRole] || 'Priya Sharma');
+  }, [currentRole]);
 
   useEffect(() => {
     localStorage.setItem('sparklers_nominations_v5', JSON.stringify(nominations));
   }, [nominations]);
 
-  const addNomination = (nomination) => {
+  useEffect(() => {
+    const sweepExpirations = () => {
+      setNominations(prev => {
+        let changed = false;
+        const now = new Date();
+        const next = prev.map(n => {
+          if (n.status === 'Pending' || n.status === 'PMApproved') {
+            const nomDate = new Date(n.date);
+            const day = nomDate.getDay();
+            const daysToFriday = (5 - day + 7) % 7;
+            
+            const targetFriday = new Date(nomDate);
+            targetFriday.setDate(nomDate.getDate() + daysToFriday);
+            targetFriday.setHours(17, 0, 0, 0); // 5:00 PM
+            
+            if (day === 5 && nomDate.getHours() >= 17) {
+              targetFriday.setDate(targetFriday.getDate() + 7);
+            }
+            
+            if (now > targetFriday) {
+              changed = true;
+              return { ...n, status: 'Expired', rejectReason: 'Automatically expired after Friday 5:00 PM deadline.' };
+            }
+          }
+          return n;
+        });
+        return changed ? next : prev;
+      });
+    };
+    
+    sweepExpirations();
+    const interval = setInterval(sweepExpirations, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const addNomination = (nomination, submittedByRole = 'User') => {
+    const isSubmittedByPM = submittedByRole === 'PM';
     setNominations(prev => [...prev, {
       ...nomination,
       id: Date.now(),
-      status: 'Pending',
+      // If PM nominates directly, skip PM queue → go straight to Admin
+      status: isSubmittedByPM ? 'PMApproved' : 'Pending',
       date: new Date().toISOString(),
-      submittedBy: 'self'
+      submittedBy: submittedByRole
     }]);
   };
 
