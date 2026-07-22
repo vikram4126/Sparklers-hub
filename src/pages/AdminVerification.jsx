@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { Check, X, Search } from 'lucide-react';
 
 const AdminVerification = () => {
-  const { nominations, adminApprove, rejectNomination } = useAppContext();
+  const { nominations, adminApprove, rejectNomination, getPMForUser, getTeamNameForUser } = useAppContext();
   const [rejectModal, setRejectModal] = useState({ open: false, id: null, reason: '' });
   const [approveModal, setApproveModal] = useState({ open: false, id: null, reason: '' });
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,9 +22,15 @@ const AdminVerification = () => {
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
 
+  // Pending with PMs
+  const pendingPM = nominations
+    .filter(n => n.status === 'Pending')
+    .filter(filterBySearch)
+    .sort((a, b) => b.id - a.id);
+
   // All other nominations for reference
   const otherNominations = nominations
-    .filter(n => n.status !== 'PMApproved')
+    .filter(n => n.status !== 'PMApproved' && n.status !== 'Pending')
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
 
@@ -197,7 +203,55 @@ const AdminVerification = () => {
           </table>
         </div>
       )}
+      {/* Pending with PMs */}
+      <h3 style={{ marginBottom: '1rem', marginTop: '2rem' }}>
+        Pending with PMs (Awaiting PM Approval)
+        {pendingPM.length > 0 && (
+          <span style={{ marginLeft: '0.5rem', background: 'rgba(245, 158, 11, 0.15)', color: '#b45309', borderRadius: '999px', padding: '0.1rem 0.6rem', fontSize: '0.8rem', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            {pendingPM.length}
+          </span>
+        )}
+      </h3>
 
+      {pendingPM.length === 0 ? (
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '2rem', marginBottom: '2.5rem' }}>
+          <p className="text-muted">No nominations pending with PMs. ✅</p>
+        </div>
+      ) : (
+        <div className="table-container" style={{ marginBottom: '2.5rem' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Nominee</th>
+                <th>Category</th>
+                <th>Reason</th>
+                <th>Assigned PM / Team</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingPM.map(nom => {
+                const pm = getPMForUser(nom.name);
+                const team = getTeamNameForUser(nom.name);
+                return (
+                  <tr key={nom.id}>
+                    <td style={{ fontWeight: 600 }}>{nom.name}</td>
+                    <td><span className="badge badge-category">{nom.category}</span></td>
+                    <td style={{ maxWidth: '300px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{nom.reason}</td>
+                    <td>
+                      <div style={{ fontWeight: '500' }}>{pm}</div>
+                      <div className="text-muted" style={{ fontSize: '0.75rem' }}>{team}</div>
+                    </td>
+                    <td>
+                      <span className="badge badge-pending">⏳ Pending PM</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* All nominations overview */}
       <h3 style={{ marginBottom: '1rem' }}>
         All Nominations Overview

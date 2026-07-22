@@ -3,7 +3,7 @@ import { useAppContext, PM_TEAM, CATEGORIES } from '../context/AppContext';
 import { Check, X, ChevronDown, Search } from 'lucide-react';
 
 const PMApprovals = () => {
-  const { nominations, pmApprove, rejectNomination } = useAppContext();
+  const { nominations, pmApprove, rejectNomination, currentUser, getReporteesForPM } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filterBySearch = (nom) => {
@@ -14,14 +14,16 @@ const PMApprovals = () => {
            nom.reason.toLowerCase().includes(lowerQ);
   };
 
+  const myReportees = getReporteesForPM(currentUser);
+
   // PM only sees their team members' Pending requests
   const teamNominations = nominations
-    .filter(n => PM_TEAM.includes(n.name) && n.status === 'Pending')
+    .filter(n => myReportees.includes(n.name) && n.status === 'Pending')
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
 
   const doneNominations = nominations
-    .filter(n => PM_TEAM.includes(n.name) && n.status !== 'Pending')
+    .filter(n => myReportees.includes(n.name) && n.status !== 'Pending')
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
 

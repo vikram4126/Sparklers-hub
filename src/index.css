@@ -1,3 +1,54 @@
+/* ── Open Sans Local Fonts ─────────────────────────────── */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/Open_Sans 2/OpenSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+/* Condensed variant for headings */
+@font-face {
+  font-family: 'Open Sans Condensed';
+  src: url('/Open_Sans 2/OpenSans-CondBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Open Sans Condensed';
+  src: url('/Open_Sans 2/OpenSans-CondLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
 :root {
   /* KPMG Brand Colors */
   --primary: #00338d;
@@ -25,7 +76,8 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
@@ -52,8 +104,9 @@ body {
 
 /* Typography */
 h1, h2, h3, h4 {
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-family: 'Open Sans Condensed', 'Open Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--text-main);
 }
 

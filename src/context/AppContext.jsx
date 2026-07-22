@@ -6,18 +6,62 @@ export const getWeekOfMonth = (date) => {
   return Math.ceil(date.getDate() / 7);
 };
 
-// Mock team structure: PM manages these users
-export const PM_TEAM = ['Priya Sharma', 'Rahul Verma', 'Anjali Singh', 'Rohit Kumar'];
+// PM and reportees mapping
+export const PM_TEAM_MAP = {
+  'Abhineet': ['Parteek', 'Shreya', 'Ganash lal'],
+  'Ses': ['Vikram', 'Shantanu', 'Sukhvenar'],
+  'Himanshu': ['Sivani'],
+  'Monam': ['Ameen']
+};
+
+export const PM_ROLES = {
+  'Abhineet': 'PM',
+  'Ses': 'PM',
+  'Himanshu': 'PM',
+  'Monam': 'AM'
+};
+
+export const PM_TEAM_NAMES = {
+  'Abhineet': "Abhineet's Team",
+  'Ses': "Ses's Team",
+  'Himanshu': "Himanshu's Team",
+  'Monam': "Monam's Team"
+};
+
+// All reportees list
+export const PM_TEAM = Object.values(PM_TEAM_MAP).flat();
 
 export const CATEGORIES = ['Innovation', 'Team Player', 'Extra Mile', 'Customer Success'];
 
 // Each role has its own identity
 export const ROLE_USERS = {
-  User: 'Priya Sharma',
-  PM: 'Vikram Patel',
-  Admin: 'Sunita Rao',
-  Leadership: 'Deepak Joshi'
+  User: 'Parteek',
+  PM: 'Abhineet',
+  Admin: 'Sola',
+  Leadership: 'Kumaran'
 };
+
+export const getPMForUser = (userName) => {
+  for (const [pm, reportees] of Object.entries(PM_TEAM_MAP)) {
+    if (reportees.includes(userName)) {
+      return pm;
+    }
+  }
+  return 'Unknown PM';
+};
+
+export const getTeamNameForUser = (userName) => {
+  if (PM_TEAM_MAP[userName]) {
+    return PM_TEAM_NAMES[userName];
+  }
+  const pm = getPMForUser(userName);
+  return PM_TEAM_NAMES[pm] || 'Management';
+};
+
+export const getReporteesForPM = (pmName) => {
+  return PM_TEAM_MAP[pmName] || [];
+};
+
 
 let _id = 100;
 const mkNom = (name, category, reason, status, dateStr, submittedBy = 'PM') => ({
@@ -142,10 +186,28 @@ const initialNominations = [
   mkNom('Deepak Joshi',   'Team Player',      'Coordinated town hall logistics flawlessly','PMApproved','2026-07-18'),
 ];
 
+const nameMap = {
+  'Priya Sharma': 'Parteek',
+  'Rahul Verma': 'Shreya',
+  'Anjali Singh': 'Ganash lal',
+  'Vikram Patel': 'Vikram',
+  'Neha Gupta': 'Shantanu',
+  'Arjun Mehta': 'Sukhvenar',
+  'Kavitha Nair': 'Sivani',
+  'Rohit Kumar': 'Ameen',
+  'Sunita Rao': 'Shreya',
+  'Deepak Joshi': 'Parteek'
+};
+
+const mappedInitialNominations = initialNominations.map(n => ({
+  ...n,
+  name: nameMap[n.name] || n.name
+}));
+
 export const AppProvider = ({ children }) => {
   const [nominations, setNominations] = useState(() => {
-    const saved = localStorage.getItem('sparklers_nominations_v5');
-    return saved ? JSON.parse(saved) : initialNominations;
+    const saved = localStorage.getItem('sparklers_nominations_v6');
+    return saved ? JSON.parse(saved) : mappedInitialNominations;
   });
 
   const [currentRole, setCurrentRole] = useState('User');
@@ -153,11 +215,11 @@ export const AppProvider = ({ children }) => {
 
   // Auto-sync user name when role changes
   useEffect(() => {
-    setCurrentUser(ROLE_USERS[currentRole] || 'Priya Sharma');
+    setCurrentUser(ROLE_USERS[currentRole] || 'Parteek');
   }, [currentRole]);
 
   useEffect(() => {
-    localStorage.setItem('sparklers_nominations_v5', JSON.stringify(nominations));
+    localStorage.setItem('sparklers_nominations_v6', JSON.stringify(nominations));
   }, [nominations]);
 
   useEffect(() => {
@@ -235,7 +297,10 @@ export const AppProvider = ({ children }) => {
       currentRole,
       setCurrentRole,
       currentUser,
-      setCurrentUser
+      setCurrentUser,
+      getPMForUser,
+      getTeamNameForUser,
+      getReporteesForPM
     }}>
       {children}
     </AppContext.Provider>

@@ -4,7 +4,7 @@ import { Medal, Trophy, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = () => {
-  const { nominations, currentUser } = useAppContext();
+  const { nominations, currentUser, currentRole, getPMForUser } = useAppContext();
   const navigate = useNavigate();
 
   const userStats = useMemo(() => {
@@ -28,17 +28,66 @@ const UserDashboard = () => {
     return { total, categories, badge, myPastAwards };
   }, [nominations, currentUser]);
 
-  const teamLeaderboard = useMemo(() => {
+  const memberLeaderboard = useMemo(() => {
     const approved = nominations.filter(n => n.status === 'Approved');
     const scores = {};
-    approved.forEach(n => {
-      scores[n.name] = (scores[n.name] || 0) + 1;
+    
+    // Initialize all reportees with 0
+    const ALL_REPORTEES = ['Parteek', 'Shreya', 'Ganash lal', 'Vikram', 'Shantanu', 'Sukhvenar', 'Sivani', 'Ameen'];
+    ALL_REPORTEES.forEach(name => {
+      scores[name] = 0;
     });
+    
+    approved.forEach(n => {
+      if (scores[n.name] !== undefined) {
+        scores[n.name]++;
+      }
+    });
+    
     return Object.entries(scores)
       .map(([name, total]) => ({ name, total }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [nominations]);
+
+  const pmLeaderboard = useMemo(() => {
+    const approved = nominations.filter(n => n.status === 'Approved');
+    const pmScores = {
+      'Abhineet': 0,
+      'Ses': 0,
+      'Himanshu': 0,
+      'Monam': 0
+    };
+    
+    approved.forEach(n => {
+      const pm = getPMForUser(n.name);
+      if (pmScores[pm] !== undefined) {
+        pmScores[pm]++;
+      }
+    });
+    
+    const pmRoles = {
+      'Abhineet': 'PM',
+      'Ses': 'PM',
+      'Himanshu': 'PM',
+      'Monam': 'AM'
+    };
+    
+    const pmTeamNames = {
+      'Abhineet': "Abhineet's Team",
+      'Ses': "Ses's Team",
+      'Himanshu': "Himanshu's Team",
+      'Monam': "Monam's Team"
+    };
+    
+    return Object.entries(pmScores)
+      .map(([pmName, total]) => ({
+        name: `${pmName} (${pmRoles[pmName]})`,
+        teamName: pmTeamNames[pmName],
+        total
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [nominations, getPMForUser]);
 
   return (
     <div className="animate-fade-in">
@@ -130,40 +179,73 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* Team Leaderboard Snapshot */}
+        {/* Leaderboard Snapshot */}
         <div className="glass-panel">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <Trophy size={20} color="#f59e0b" />
-            <h3 style={{ margin: 0 }}>Team Leaders</h3>
+            <h3 style={{ margin: 0 }}>{currentRole === 'PM' ? 'PM & AM Leaderboard' : 'All Members Leaderboard'}</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {teamLeaderboard.map((user, idx) => (
-              <div
-                key={user.name}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingBottom: '0.75rem',
-                  borderBottom: idx < teamLeaderboard.length - 1 ? '1px solid var(--border)' : 'none'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.2rem', width: '28px', textAlign: 'center' }}>
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅'}
-                  </span>
-                  <span style={{
-                    fontWeight: user.name === currentUser ? '700' : '500',
-                    color: user.name === currentUser ? 'var(--primary)' : 'inherit'
-                  }}>
-                    {user.name} {user.name === currentUser && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>(You)</span>}
-                  </span>
+            {currentRole === 'PM' ? (
+              pmLeaderboard.map((item, idx) => (
+                <div
+                  key={item.name}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingBottom: '0.75rem',
+                    borderBottom: idx < pmLeaderboard.length - 1 ? '1px solid var(--border)' : 'none'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.2rem', width: '28px', textAlign: 'center' }}>
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅'}
+                    </span>
+                    <div>
+                      <div style={{ 
+                        fontWeight: item.name.startsWith(currentUser) ? '700' : '500',
+                        color: item.name.startsWith(currentUser) ? 'var(--primary)' : 'inherit'
+                      }}>
+                        {item.name} {item.name.startsWith(currentUser) && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>(You)</span>}
+                      </div>
+                      <div className="text-muted" style={{ fontSize: '0.75rem' }}>{item.teamName}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: '600', color: 'var(--primary)' }}>
+                    {item.total} <span className="text-muted" style={{ fontWeight: 'normal', fontSize: '0.8rem' }}>awards</span>
+                  </div>
                 </div>
-                <div style={{ fontWeight: '600', color: 'var(--primary)' }}>
-                  {user.total} <span className="text-muted" style={{ fontWeight: 'normal', fontSize: '0.8rem' }}>awards</span>
+              ))
+            ) : (
+              memberLeaderboard.map((user, idx) => (
+                <div
+                  key={user.name}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingBottom: '0.75rem',
+                    borderBottom: idx < memberLeaderboard.length - 1 ? '1px solid var(--border)' : 'none'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.2rem', width: '28px', textAlign: 'center' }}>
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅'}
+                    </span>
+                    <span style={{
+                      fontWeight: user.name === currentUser ? '700' : '500',
+                      color: user.name === currentUser ? 'var(--primary)' : 'inherit'
+                    }}>
+                      {user.name} {user.name === currentUser && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>(You)</span>}
+                    </span>
+                  </div>
+                  <div style={{ fontWeight: '600', color: 'var(--primary)' }}>
+                    {user.total} <span className="text-muted" style={{ fontWeight: 'normal', fontSize: '0.8rem' }}>awards</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

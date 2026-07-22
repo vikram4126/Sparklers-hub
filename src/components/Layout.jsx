@@ -4,15 +4,18 @@ import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users } from
 import { useAppContext, ROLE_USERS } from '../context/AppContext';
 
 const Layout = () => {
-  const { currentRole, setCurrentRole, currentUser, nominations } = useAppContext();
+  const { currentRole, setCurrentRole, currentUser, setCurrentUser, nominations, getReporteesForPM } = useAppContext();
   const navigate = useNavigate();
 
-  // Badge counts
-  const pendingPM = nominations.filter(n => n.status === 'Pending').length;
+  // Dynamic PM pending count based on logged-in PM's team
+  const myReportees = currentRole === 'PM' ? getReporteesForPM(currentUser) : [];
+  const pendingPM = nominations.filter(n => n.status === 'Pending' && myReportees.includes(n.name)).length;
   const pendingAdmin = nominations.filter(n => n.status === 'PMApproved').length;
 
-  const handleRoleChange = (role) => {
+  const handleRoleChange = (val) => {
+    const [role, user] = val.split(':');
     setCurrentRole(role);
+    setCurrentUser(user);
     navigate('/');
   };
 
@@ -104,13 +107,29 @@ const Layout = () => {
               <select
                 className="form-select"
                 style={{ padding: '0.4rem 0.75rem', fontSize: '0.9rem', width: 'auto', cursor: 'pointer' }}
-                value={currentRole}
+                value={`${currentRole}:${currentUser}`}
                 onChange={(e) => handleRoleChange(e.target.value)}
               >
-                <option value="User">User ({ROLE_USERS.User})</option>
-                <option value="PM">PM / Manager ({ROLE_USERS.PM})</option>
-                <option value="Admin">Admin ({ROLE_USERS.Admin})</option>
-                <option value="Leadership">Leadership ({ROLE_USERS.Leadership})</option>
+                <optgroup label="Users (Reportees)">
+                  <option value="User:Parteek">Parteek (Abhineet's Team)</option>
+                  <option value="User:Shreya">Shreya (Abhineet's Team)</option>
+                  <option value="User:Ganash lal">Ganash lal (Abhineet's Team)</option>
+                  <option value="User:Vikram">Vikram (Ses's Team)</option>
+                  <option value="User:Shantanu">Shantanu (Ses's Team)</option>
+                  <option value="User:Sukhvenar">Sukhvenar (Ses's Team)</option>
+                  <option value="User:Sivani">Sivani (Himanshu's Team)</option>
+                  <option value="User:Ameen">Ameen (Monam's Team)</option>
+                </optgroup>
+                <optgroup label="PMs & AMs (Managers)">
+                  <option value="PM:Abhineet">Abhineet (PM)</option>
+                  <option value="PM:Ses">Ses (PM)</option>
+                  <option value="PM:Himanshu">Himanshu (PM)</option>
+                  <option value="PM:Monam">Monam (AM)</option>
+                </optgroup>
+                <optgroup label="Admin & Leadership">
+                  <option value="Admin:Sola">Sola (Admin)</option>
+                  <option value="Leadership:Kumaran">Kumaran (Leadership)</option>
+                </optgroup>
               </select>
             </div>
 

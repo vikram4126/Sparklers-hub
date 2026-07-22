@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useAppContext, PM_TEAM } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 import { Send } from 'lucide-react';
 
 const NominationForm = () => {
-  const { addNomination, currentRole } = useAppContext();
+  const { addNomination, currentRole, currentUser, getReporteesForPM } = useAppContext();
+  const myReportees = getReporteesForPM(currentUser);
   const [formData, setFormData] = useState({ name: '', category: 'Innovation', reason: '' });
   const [submitted, setSubmitted] = useState(false);
 
@@ -44,7 +45,7 @@ const NominationForm = () => {
                 required
               >
                 <option value="" disabled>Select a team member</option>
-                {PM_TEAM.map(member => (
+                {myReportees.map(member => (
                   <option key={member} value={member}>{member}</option>
                 ))}
               </select>
