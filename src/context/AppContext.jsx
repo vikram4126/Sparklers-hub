@@ -6,19 +6,38 @@ export const getWeekOfMonth = (date) => {
   return Math.ceil(date.getDate() / 7);
 };
 
-// PM and reportees mapping
+// Managers: Sol (Manager), Ashok (Manager)
+// AMs: Ses (AM), Monam (AM)
+// TLs: Abhineet (TL - CD), Himanshu (TL - Digital), Ameen (TL - Design)
+// Admin: Avinash (separate role — can be any user; gets Final Approvals + Design Generator access)
 export const PM_TEAM_MAP = {
-  'Abhineet': ['Parteek', 'Shreya', 'Ganash lal'],
-  'Ses': ['Vikram', 'Shantanu', 'Sukhvenar'],
-  'Himanshu': ['Sivani'],
-  'Monam': ['Ameen']
+  'Abhineet': ['Parteek', 'Shreya', 'Ganash lal'], // Users to CD TL
+  'Himanshu': ['Vikram', 'Shantanu', 'Sukhvindar'], // Users to Digital TL
+  'Ameen': ['Sivani'], // User to Design TL
+  'Monam': ['Abhineet', 'Rahul', 'Priya'], // CD/Sales TLs to AM Monam
+  'Rohan': [], // Dummy AM under Ashok (Sales)
+  'Ses': ['Himanshu', 'Ameen'], // Digital & Design TLs to AM Ses
+  'Kunal': [], // Dummy AM under Sol (Digital)
+  'Ashok': ['Monam', 'Rohan'], // AMs to Manager Ashok
+  'Sol': ['Ses', 'Kunal'], // AMs to Manager Sol
+  'Kumaran': ['Sol', 'Ashok'], // Managers to AD Kumaran
+  'Krishan': ['Kumaran'] // AD Kumaran to Director Krishan
 };
 
 export const PM_ROLES = {
-  'Abhineet': 'PM',
-  'Ses': 'PM',
-  'Himanshu': 'PM',
-  'Monam': 'AM'
+  'Abhineet': 'TL',
+  'Himanshu': 'TL',
+  'Ameen': 'TL',
+  'Rahul': 'TL',
+  'Priya': 'TL',
+  'Ses': 'AM',
+  'Monam': 'AM',
+  'Rohan': 'AM',
+  'Kunal': 'AM',
+  'Sol': 'Manager',
+  'Ashok': 'Manager',
+  'Kumaran': 'AD',
+  'Krishan': 'Director'
 };
 
 export const PM_TEAM_NAMES = {
@@ -28,16 +47,65 @@ export const PM_TEAM_NAMES = {
   'Monam': "Monam's Team"
 };
 
+// Department mapping per member
+export const USER_DEPARTMENT_MAP = {
+  // CD
+  'Abhineet': 'CD',
+  'Parteek':  'CD',
+  'Shreya':   'CD',
+  'Ganash lal': 'CD',
+  // Digital
+  'Himanshu':  'Digital',
+  'Vikram':    'Digital',
+  'Shantanu':  'Digital',
+  'Sukhvindar': 'Digital',
+  // Design
+  'Ameen':     'Design',
+  'Sivani':    'Design',
+  // AM / Managers
+  'Ses':       'Digital',
+  'Monam':     'Sales',
+  'Rahul':     'Sales',
+  'Priya':     'Sales',
+  'Rohan':     'Sales',
+  'Kunal':     'Digital',
+  'Sol':       'Digital', // Sol is Digital Manager
+  'Ashok':     'Design',  // Ashok is Design Manager
+  // AD / Director
+  'Kumaran':   'Admin',
+  'Krishan':   'Admin',
+  // Admin (separate platform role — not tied to hierarchy)
+  'Avinash':   'Admin'
+};
+
+export const getDepartmentForUser = (userName) => {
+  return USER_DEPARTMENT_MAP[userName] || '';
+};
+
 // All reportees list
 export const PM_TEAM = Object.values(PM_TEAM_MAP).flat();
 
 export const CATEGORIES = ['Innovation', 'Team Player', 'Extra Mile', 'Customer Success'];
 
+export const EXTERNAL_AWARD_TYPES = [
+  'Rising Star',
+  'Kudos',
+  'Above and Beyond',
+  'Service Excellence',
+  'Innovation Award',
+  'Living the Values',
+  'Client Champion',
+  'Team Spirit',
+  'Leadership Excellence',
+  'Other'
+];
+
 // Each role has its own identity
+// Admin is a platform role — Avinash is both a user AND admin
 export const ROLE_USERS = {
   User: 'Parteek',
   PM: 'Abhineet',
-  Admin: 'Sola',
+  Admin: 'Avinash',
   Leadership: 'Kumaran'
 };
 
@@ -192,86 +260,134 @@ const nameMap = {
   'Anjali Singh': 'Ganash lal',
   'Vikram Patel': 'Vikram',
   'Neha Gupta': 'Shantanu',
-  'Arjun Mehta': 'Sukhvenar',
+  'Arjun Mehta': 'Sukhvindar',
   'Kavitha Nair': 'Sivani',
   'Rohit Kumar': 'Ameen',
   'Sunita Rao': 'Shreya',
   'Deepak Joshi': 'Parteek'
 };
 
-const mappedInitialNominations = initialNominations.map(n => ({
-  ...n,
-  name: nameMap[n.name] || n.name
-}));
+// Dummy awards directly for TLs, AMs and Managers
+const pmInitialNominations = [
+  mkNom('Abhineet', 'Extra Mile', 'Exemplary leadership during project transition', 'Approved', '2026-06-15', 'Monam'),
+  mkNom('Abhineet', 'Innovation', 'Set up high-performance workflow models', 'Approved', '2026-07-10', 'Monam'),
+  mkNom('Ses', 'Team Player', 'Successfully coordinated cross-functional launch', 'Approved', '2026-06-20', 'Sol'),
+  mkNom('Himanshu', 'Customer Success', 'Helped secure digital onboarding from key client', 'Approved', '2026-07-05', 'Ses'),
+  mkNom('Monam', 'Extra Mile', 'Led emergency sales pitch securing 3 key accounts', 'Approved', '2026-07-12', 'Ashok'),
+  mkNom('Ameen', 'Innovation', 'Created beautiful interactive user journey interfaces', 'Approved', '2026-07-11', 'Ses'),
+  // Avinash as a user — nominated by their TL
+  mkNom('Avinash', 'Innovation', 'Streamlined admin workflows improving team efficiency by 30%', 'Approved', '2026-07-08', 'Ses'),
+  // Monam's Dummy TLs awards
+  mkNom('Rahul', 'Extra Mile', 'Secured 3 new enterprise deals', 'Approved', '2026-06-28', 'Monam'),
+  mkNom('Priya', 'Team Player', 'Successfully restructured the sales pipeline', 'Approved', '2026-07-10', 'Monam'),
+  mkNom('Priya', 'Innovation', 'Created new automated lead tracking tool', 'Approved', '2026-07-02', 'Monam'),
+  // Rohan (AM Sales under Ashok) dummy approved awards
+  mkNom('Rohan', 'Extra Mile', 'Exceeded sales targets for Q2 by 45%', 'Approved', '2026-06-18', 'Ashok'),
+  mkNom('Rohan', 'Innovation', 'Created new automated lead tracking tool', 'Approved', '2026-07-02', 'Ashok'),
+  mkNom('Rohan', 'Team Player', 'Helped onboard new TLs in Sales', 'Approved', '2026-07-15', 'Ashok'),
+  // Kunal (AM Digital under Sol) dummy approved awards
+  mkNom('Kunal', 'Customer Success', 'Maintained 100% SLA for key digital accounts', 'Approved', '2026-06-25', 'Sol'),
+  mkNom('Kunal', 'Team Player', 'Supported cross-team design integrations', 'Approved', '2026-07-04', 'Sol'),
+];
+
+const mappedInitialNominations = [
+  ...initialNominations.map(n => ({
+    ...n,
+    name: nameMap[n.name] || n.name
+  })),
+  ...pmInitialNominations
+];
 
 export const AppProvider = ({ children }) => {
   const [nominations, setNominations] = useState(() => {
-    const saved = localStorage.getItem('sparklers_nominations_v6');
+    const saved = localStorage.getItem('sparklers_nominations_v8');
     return saved ? JSON.parse(saved) : mappedInitialNominations;
   });
 
   const [currentRole, setCurrentRole] = useState('User');
   const [currentUser, setCurrentUser] = useState(ROLE_USERS['User']);
 
-  // Auto-sync user name when role changes
-  useEffect(() => {
-    setCurrentUser(ROLE_USERS[currentRole] || 'Parteek');
-  }, [currentRole]);
+
+
 
   useEffect(() => {
-    localStorage.setItem('sparklers_nominations_v6', JSON.stringify(nominations));
+    localStorage.setItem('sparklers_nominations_v8', JSON.stringify(nominations));
   }, [nominations]);
 
+  // ── External Awards (My Achievement Locker) ────────────────────
+  const [externalAwards, setExternalAwards] = useState(() => {
+    const saved = localStorage.getItem('sparklers_external_awards_v1');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
-    const sweepExpirations = () => {
-      setNominations(prev => {
-        let changed = false;
-        const now = new Date();
-        const next = prev.map(n => {
-          if (n.status === 'Pending' || n.status === 'PMApproved') {
-            const nomDate = new Date(n.date);
-            const day = nomDate.getDay();
-            const daysToFriday = (5 - day + 7) % 7;
-            
-            const targetFriday = new Date(nomDate);
-            targetFriday.setDate(nomDate.getDate() + daysToFriday);
-            targetFriday.setHours(17, 0, 0, 0); // 5:00 PM
-            
-            if (day === 5 && nomDate.getHours() >= 17) {
-              targetFriday.setDate(targetFriday.getDate() + 7);
-            }
-            
-            if (now > targetFriday) {
-              changed = true;
-              return { ...n, status: 'Expired', rejectReason: 'Automatically expired after Friday 5:00 PM deadline.' };
-            }
-          }
-          return n;
-        });
-        return changed ? next : prev;
-      });
+    localStorage.setItem('sparklers_external_awards_v1', JSON.stringify(externalAwards));
+  }, [externalAwards]);
+
+  const addExternalAward = (award) => {
+    const pm = getPMForUser(award.submittedBy);
+    const newAward = {
+      ...award,
+      id: Date.now(),
+      status: award.status || 'Pending',
+      submittedAt: new Date().toISOString(),
+      pm
     };
-    
-    sweepExpirations();
-    const interval = setInterval(sweepExpirations, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    setExternalAwards(prev => [...prev, newAward]);
+    // Trigger Power Automate webhook (placeholder — replace URL when ready)
+    const POWER_AUTOMATE_WEBHOOK = null; // TODO: Replace with your Power Automate HTTP trigger URL
+    if (POWER_AUTOMATE_WEBHOOK) {
+      fetch(POWER_AUTOMATE_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeName: award.submittedBy,
+          pmName: pm,
+          awardName: award.awardName,
+          platform: award.platform,
+          awardedBy: award.awardedBy,
+          dateReceived: award.dateReceived,
+          description: award.description
+        })
+      }).catch(() => {}); // Silent fail — email is nice-to-have
+    }
+  };
+
+  const approveExternalAward = (id) => {
+    setExternalAwards(prev => prev.map(a =>
+      a.id === id ? { ...a, status: 'Approved', approvedAt: new Date().toISOString() } : a
+    ));
+  };
+
+  const rejectExternalAward = (id, reason) => {
+    setExternalAwards(prev => prev.map(a =>
+      a.id === id ? { ...a, status: 'Rejected', rejectReason: reason } : a
+    ));
+  };
+
+
+
 
   const addNomination = (nomination, submittedByRole = 'User') => {
-    const isSubmittedByPM = submittedByRole === 'PM';
+    const isSubmittedByPM = ['PM', 'Leadership', 'Director'].includes(submittedByRole);
     setNominations(prev => [...prev, {
       ...nomination,
       id: Date.now(),
       // If PM nominates directly, skip PM queue → go straight to Admin
-      status: isSubmittedByPM ? 'PMApproved' : 'Pending',
+      status: nomination.status || (isSubmittedByPM ? 'PMApproved' : 'Pending'),
       date: new Date().toISOString(),
       submittedBy: submittedByRole
     }]);
   };
 
-  const pmApprove = (id, newCategory, reason) => {
+  const pmApprove = (id, pmCategory, pmReason) => {
     setNominations(prev => prev.map(n =>
-      n.id === id ? { ...n, status: 'PMApproved', category: newCategory || n.category, pmApproveReason: reason } : n
+      n.id === id ? {
+        ...n,
+        status: 'PMApproved',
+        pmCategory: pmCategory || '',
+        pmReason: pmReason || ''
+      } : n
     ));
   };
 
@@ -281,10 +397,28 @@ export const AppProvider = ({ children }) => {
     ));
   };
 
-  const adminApprove = (id, reason) => {
+  const adminApprove = (id, adminCategory, adminReason) => {
     setNominations(prev => prev.map(n =>
-      n.id === id ? { ...n, status: 'Approved', adminApproveReason: reason } : n
+      n.id === id ? {
+        ...n,
+        status: 'Approved',
+        adminCategory: adminCategory || '',
+        adminReason: adminReason || ''
+      } : n
     ));
+  };
+
+  // Priority: Admin > PM > User
+  const getEffectiveCategory = (nom) => {
+    if (nom.adminCategory) return nom.adminCategory;
+    if (nom.pmCategory) return nom.pmCategory;
+    return nom.category;
+  };
+
+  const getEffectiveReason = (nom) => {
+    if (nom.adminReason) return nom.adminReason;
+    if (nom.pmReason) return nom.pmReason;
+    return nom.reason;
   };
 
   return (
@@ -300,7 +434,15 @@ export const AppProvider = ({ children }) => {
       setCurrentUser,
       getPMForUser,
       getTeamNameForUser,
-      getReporteesForPM
+      getReporteesForPM,
+      getDepartmentForUser,
+      getEffectiveCategory,
+      getEffectiveReason,
+      // External Awards
+      externalAwards,
+      addExternalAward,
+      approveExternalAward,
+      rejectExternalAward
     }}>
       {children}
     </AppContext.Provider>

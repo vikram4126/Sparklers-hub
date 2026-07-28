@@ -34,7 +34,8 @@ const getMonthlyBadge = (count) => {
 };
 
 const LeadershipDashboard = () => {
-  const { nominations } = useAppContext();
+  const { nominations, externalAwards } = useAppContext();
+  const [activeTab, setActiveTab] = useState('sparklers');
 
   // Build list of months that appear in the DATA (based on Friday of the week)
   const months = useMemo(() => {
@@ -153,14 +154,45 @@ const LeadershipDashboard = () => {
   const activeWeeks = sections.filter(s => !s.isMonthHeader).length;
 
   return (
-    <div className="animate-fade-in">
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
+      {/* ── Tab Switcher ── */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '2px solid var(--border)' }}>
+        <button
+          onClick={() => setActiveTab('sparklers')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '0.75rem 1.5rem',
+            fontWeight: '600', fontSize: '1rem', flex: 1,
+            color: activeTab === 'sparklers' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'sparklers' ? '3px solid var(--primary)' : '3px solid transparent',
+            marginBottom: '-2.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+          }}
+        >
+          <Star size={18} /> Sparklers Awards
+        </button>
+        <button
+          onClick={() => setActiveTab('other')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '0.75rem 1.5rem',
+            fontWeight: '600', fontSize: '1rem', flex: 1,
+            color: activeTab === 'other' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: activeTab === 'other' ? '3px solid var(--primary)' : '3px solid transparent',
+            marginBottom: '-2.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+          }}
+        >
+          <Award size={18} /> Other Platform Awards
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ marginBottom: '0.25rem' }}>Winners Board</h1>
-          <p className="text-muted" style={{ margin: 0 }}>
-            Each week = the Friday when the email goes out.
-            {selectedMonth !== 'All Time' && <span> Showing all Fridays in <strong>{selectedMonth}</strong>.</span>}
+          <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Award size={28} color="var(--primary)" />
+            {activeTab === 'sparklers' ? 'Winners Board' : 'Global Portfolio'}
+          </h1>
+          <p className="text-muted" style={{ margin: '0.25rem 0 0' }}>
+            {activeTab === 'sparklers' 
+              ? 'Celebrate the weekly Sparklers champions across the company.' 
+              : 'Recognitions and awards our team has received on other platforms.'}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem' }} className="glass-panel">
@@ -178,7 +210,8 @@ const LeadershipDashboard = () => {
       </div>
 
       {/* Badge Guide */}
-      <div style={{
+      {activeTab === 'sparklers' && (
+        <div style={{
         display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap',
         background: 'rgba(0, 51, 141, 0.04)', padding: '0.75rem 1.5rem',
         borderRadius: '8px', marginBottom: '2rem', border: '1px solid rgba(0, 51, 141, 0.1)',
@@ -203,9 +236,11 @@ const LeadershipDashboard = () => {
           <span className="text-muted">(3+ wins)</span>
         </div>
       </div>
+      )}
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      {activeTab === 'sparklers' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         {[
           { icon: <Award size={24} color="var(--primary)" />, bg: 'rgba(0,51,141,0.1)', value: totalApproved, label: 'Awards Given' },
           { icon: <Star size={24} color="var(--secondary)" />, bg: 'rgba(114,19,234,0.1)', value: uniqueWinners, label: 'Unique Winners' },
@@ -220,9 +255,10 @@ const LeadershipDashboard = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Week sections */}
-      {sections.map((section, idx) => {
+      {activeTab === 'sparklers' && sections.map((section, idx) => {
         if (section.isMonthHeader) {
           return (
             <div key={`mh-${section.label}`} style={{ margin: '2rem 0 1rem', borderBottom: '2px solid var(--primary)', paddingBottom: '0.4rem' }}>
@@ -306,11 +342,101 @@ const LeadershipDashboard = () => {
         );
       })}
 
-      {totalApproved === 0 && selectedMonth !== 'All Time' && (
+      {activeTab === 'sparklers' && totalApproved === 0 && selectedMonth !== 'All Time' && (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem' }}>
           <p className="text-muted">No awards found for <strong>{selectedMonth}</strong>.</p>
         </div>
       )}
+
+      {activeTab === 'other' && (() => {
+        const approvedExt = externalAwards.filter(a => a.status === 'Approved');
+        const extMonths = [...new Set(approvedExt.map(a => getMonthKey(a.dateReceived)))].sort((a, b) => new Date(b) - new Date(a));
+        
+        const currentExtMonth = selectedMonth === 'All Time' ? 'All Time' : selectedMonth;
+        let displayExt = approvedExt;
+        if (currentExtMonth !== 'All Time') {
+          displayExt = approvedExt.filter(a => getMonthKey(a.dateReceived) === currentExtMonth);
+        }
+
+        // Group by month
+        const extSections = [];
+        extMonths.forEach(m => {
+          if (currentExtMonth === 'All Time' || currentExtMonth === m) {
+            extSections.push({ isMonthHeader: true, label: m });
+            extSections.push({
+              month: m,
+              winners: displayExt.filter(a => getMonthKey(a.dateReceived) === m).sort((a, b) => new Date(b.dateReceived) - new Date(a.dateReceived))
+            });
+          }
+        });
+
+        if (approvedExt.length === 0) {
+          return (
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem' }}>
+              <p className="text-muted">No external awards have been approved yet.</p>
+            </div>
+          );
+        }
+
+        return (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', background: 'rgba(0,51,141,0.1)', borderRadius: '50%' }}>
+                  <Award size={24} color="var(--primary)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1 }}>{displayExt.length}</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Recognitions</div>
+                </div>
+              </div>
+              <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', background: 'rgba(114,19,234,0.1)', borderRadius: '50%' }}>
+                  <Star size={24} color="var(--secondary)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1 }}>{new Set(displayExt.map(a => a.submittedBy)).size}</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem' }}>Unique Achievers</div>
+                </div>
+              </div>
+            </div>
+
+            {extSections.map((section, idx) => {
+              if (section.isMonthHeader) {
+                return (
+                  <div key={`mh-ext-${section.label}`} style={{ margin: '2rem 0 1rem', borderBottom: '2px solid var(--primary)', paddingBottom: '0.4rem' }}>
+                    <h2 style={{ margin: 0, color: 'var(--primary)' }}>{section.label}</h2>
+                  </div>
+                );
+              }
+              
+              const { winners } = section;
+              if (winners.length === 0) return null;
+              
+              return (
+                <div key={`ext-grid-${section.month}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+                  {winners.map(award => (
+                    <div key={award.id} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                        <div>
+                          <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--primary)', marginBottom: '0.2rem' }}>{award.submittedBy}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(award.dateReceived).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
+                        <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '700', padding: '0.25rem 0.6rem', borderRadius: '12px', whiteSpace: 'nowrap' }}>
+                          {award.platform}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: '700', fontSize: '1rem', marginBottom: '0.5rem' }}>{award.awardName}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', flex: 1 }}>{award.description}</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
     </div>
   );
 };

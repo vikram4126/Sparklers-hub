@@ -1,15 +1,20 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users } from 'lucide-react';
+import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users, Award } from 'lucide-react';
 import { useAppContext, ROLE_USERS } from '../context/AppContext';
 
 const Layout = () => {
-  const { currentRole, setCurrentRole, currentUser, setCurrentUser, nominations, getReporteesForPM } = useAppContext();
+  const { currentRole, setCurrentRole, currentUser, setCurrentUser, nominations, getReporteesForPM, externalAwards } = useAppContext();
   const navigate = useNavigate();
 
-  // Dynamic PM pending count based on logged-in PM's team
-  const myReportees = currentRole === 'PM' ? getReporteesForPM(currentUser) : [];
-  const pendingPM = nominations.filter(n => n.status === 'Pending' && myReportees.includes(n.name)).length;
+  // Dynamic PM pending count based on logged-in user's team
+  const myReportees = getReporteesForPM(currentUser);
+  const isManager = myReportees.length > 0;
+  
+  const pendingSparklers = nominations.filter(n => n.status === 'Pending' && myReportees.includes(n.name)).length;
+  const pendingExt = externalAwards.filter(a => a.pm === currentUser && a.status === 'Pending').length;
+  const totalPendingPM = pendingSparklers + pendingExt;
+  
   const pendingAdmin = nominations.filter(n => n.status === 'PMApproved').length;
 
   const handleRoleChange = (val) => {
@@ -27,32 +32,46 @@ const Layout = () => {
         </div>
 
         <div className="sidebar-nav">
-          <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
-            <Home size={20} />
-            {currentRole === 'User' ? 'My Dashboard' : 'Home'}
-          </NavLink>
+          {/* My Dashboard — hidden for Leadership (Managers) and Director */}
+          {['User', 'PM', 'Admin'].includes(currentRole) && (
+            <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
+              <Home size={20} />
+              My Dashboard
+            </NavLink>
+          )}
 
-          {/* Nominate - visible to PM only */}
-          {currentRole === 'PM' && (
+          {/* Leadership Board — for Managers (Leadership) and Directors */}
+          {(currentRole === 'Leadership' || currentRole === 'Director') && (
+            <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
+              <Home size={20} />
+              Leadership Board
+            </NavLink>
+          )}
+
+          {/* Self Nominate — Visible to User, PM, Admin (NOT Managers, AD, Director) */}
+          {['User', 'PM', 'Admin'].includes(currentRole) && (
+            <NavLink to="/self-nominate" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Award size={20} />
+              Self Nominate
+            </NavLink>
+          )}
+
+          {/* Nominate - visible to anyone with reportees EXCEPT AD/Director */}
+          {isManager && currentRole !== 'Director' && (
             <NavLink to="/nominate" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <FormInput size={20} />
               Nominate Team Member
             </NavLink>
           )}
 
-          <NavLink to="/leaderboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            <Trophy size={20} />
-            Winners Board
-          </NavLink>
-
-          {/* PM Tab */}
-          {currentRole === 'PM' && (
+          {/* PM Tab — Team Dashboard approval */}
+          {isManager && (
             <NavLink to="/pm-approvals" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Users size={20} />
-              Team Approvals
-              {pendingPM > 0 && (
+              Team Dashboard
+              {totalPendingPM > 0 && (
                 <span style={{ marginLeft: 'auto', background: 'var(--accent)', color: 'white', borderRadius: '999px', padding: '0.1rem 0.5rem', fontSize: '0.75rem' }}>
-                  {pendingPM}
+                  {totalPendingPM}
                 </span>
               )}
             </NavLink>
@@ -78,6 +97,12 @@ const Layout = () => {
               Design Generator
             </NavLink>
           )}
+
+          {/* Winners Board — always last */}
+          <NavLink to="/leaderboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <Trophy size={20} />
+            Winners Board
+          </NavLink>
         </div>
       </nav>
 
@@ -110,25 +135,36 @@ const Layout = () => {
                 value={`${currentRole}:${currentUser}`}
                 onChange={(e) => handleRoleChange(e.target.value)}
               >
-                <optgroup label="Users (Reportees)">
-                  <option value="User:Parteek">Parteek (Abhineet's Team)</option>
-                  <option value="User:Shreya">Shreya (Abhineet's Team)</option>
-                  <option value="User:Ganash lal">Ganash lal (Abhineet's Team)</option>
-                  <option value="User:Vikram">Vikram (Ses's Team)</option>
-                  <option value="User:Shantanu">Shantanu (Ses's Team)</option>
-                  <option value="User:Sukhvenar">Sukhvenar (Ses's Team)</option>
-                  <option value="User:Sivani">Sivani (Himanshu's Team)</option>
-                  <option value="User:Ameen">Ameen (Monam's Team)</option>
+                <optgroup label="Users">
+                  <option value="User:Parteek">Parteek</option>
+                  <option value="User:Shreya">Shreya</option>
+                  <option value="User:Ganash lal">Ganash lal</option>
+                  <option value="User:Vikram">Vikram</option>
+                  <option value="User:Shantanu">Shantanu</option>
+                  <option value="User:Sukhvindar">Sukhvindar</option>
+                  <option value="User:Sivani">Sivani</option>
                 </optgroup>
-                <optgroup label="PMs & AMs (Managers)">
-                  <option value="PM:Abhineet">Abhineet (PM)</option>
-                  <option value="PM:Ses">Ses (PM)</option>
-                  <option value="PM:Himanshu">Himanshu (PM)</option>
-                  <option value="PM:Monam">Monam (AM)</option>
+                <optgroup label="Team Leads">
+                  <option value="PM:Abhineet">Abhineet</option>
+                  <option value="PM:Himanshu">Himanshu</option>
+                  <option value="PM:Ameen">Ameen</option>
                 </optgroup>
-                <optgroup label="Admin & Leadership">
-                  <option value="Admin:Sola">Sola (Admin)</option>
-                  <option value="Leadership:Kumaran">Kumaran (Leadership)</option>
+                <optgroup label="AMs">
+                  <option value="PM:Ses">Ses</option>
+                  <option value="PM:Rohan">Rohan</option>
+                  <option value="PM:Kunal">Kunal</option>
+                  <option value="PM:Monam">Monam</option>
+                </optgroup>
+                <optgroup label="Managers">
+                  <option value="Leadership:Ashok">Ashok</option>
+                  <option value="Leadership:Sol">Sol</option>
+                </optgroup>
+                <optgroup label="AD & Director">
+                  <option value="Director:Kumaran">Kumaran (AD)</option>
+                  <option value="Director:Krishan">Krishan (Director)</option>
+                </optgroup>
+                <optgroup label="Admin">
+                  <option value="Admin:Avinash">Avinash (Admin)</option>
                 </optgroup>
               </select>
             </div>

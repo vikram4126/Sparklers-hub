@@ -8,6 +8,7 @@ import LeadershipDashboard from './pages/LeadershipDashboard';
 import DesignGeneratorPreview from './pages/DesignGeneratorPreview';
 import UserDashboard from './pages/UserDashboard';
 import LeadershipView from './pages/LeadershipView';
+import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import PMApprovals from './pages/PMApprovals';
 import SelfNominate from './pages/SelfNominate';
 
@@ -16,7 +17,8 @@ const RoleBasedHome = () => {
   switch (currentRole) {
     case 'Admin':      return <UserDashboard />;
     case 'PM':         return <UserDashboard />;
-    case 'Leadership': return <LeadershipView />;
+    case 'Leadership': return <LeadershipView />;     // Managers (Sol/Ashok) — AM-style dashboard + charts
+    case 'Director':   return <ExecutiveDashboard />; // Kumaran/Krishan — Executive overview
     default:           return <UserDashboard />;
   }
 };
