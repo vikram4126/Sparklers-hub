@@ -64,14 +64,15 @@ const PMApprovals = () => {
   if (approveModal.open && approveModal.nom) {
     const nom = approveModal.nom;
     return (
-      <div className="animate-fade-in" style={{ maxWidth: '620px', margin: '0 auto', background: 'var(--surface)', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+      <div className="animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto', background: 'var(--surface)', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
         <h2 style={{ marginBottom: '0.5rem', color: 'var(--primary)' }}>Approve Nomination</h2>
         <p className="text-muted" style={{ marginBottom: '1.5rem', fontSize: '0.875rem' }}>
           Review the nominee's details below. You may optionally add your own category and reason — if left blank, the nominee's original values will be used.
         </p>
 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         {/* ── Original submission (read-only) ── */}
-        <div style={{ background: 'rgba(0,51,141,0.04)', border: '1px solid rgba(0,51,141,0.12)', borderRadius: '8px', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+        <div style={{ background: 'rgba(0,51,141,0.04)', border: '1px solid rgba(0,51,141,0.12)', borderRadius: '8px', padding: '1rem' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
             📄 Original Submission
           </p>
@@ -90,7 +91,7 @@ const PMApprovals = () => {
         </div>
 
         {/* ── PM override (optional) ── */}
-        <div style={{ background: 'rgba(114,19,234,0.04)', border: '1px solid rgba(114,19,234,0.15)', borderRadius: '8px', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+        <div style={{ background: 'rgba(114,19,234,0.04)', border: '1px solid rgba(114,19,234,0.15)', borderRadius: '8px', padding: '1rem' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
             ✏️ Your Override (Optional)
           </p>
@@ -121,6 +122,7 @@ const PMApprovals = () => {
               placeholder="Add your perspective or additional context (optional)…"
             />
           </div>
+        </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>

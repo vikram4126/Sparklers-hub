@@ -64,8 +64,8 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* PM Tab — Team Dashboard approval */}
-          {isManager && (
+          {/* PM Tab — Team Dashboard approval (Not for AD/Director) */}
+          {isManager && currentRole !== 'Director' && (
             <NavLink to="/pm-approvals" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Users size={20} />
               Team Dashboard
@@ -172,10 +172,7 @@ const Layout = () => {
             <div style={{ width: '1px', height: '30px', background: 'var(--border)' }}></div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: '600', fontSize: '0.9rem', lineHeight: '1.2' }}>{currentUser}</div>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>{currentRole}</div>
-              </div>
+              <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{currentUser}</div>
               <UserCircle size={36} color="var(--primary)" />
             </div>
           </div>

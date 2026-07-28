@@ -65,7 +65,7 @@ const AdminVerification = () => {
   };
 
   const statusLabel = (status) => {
-    if (status === 'PMApproved') return '⏳ Awaiting Admin';
+    if (status === 'PMApproved') return 'Awaiting Admin';
     return status;
   };
 
@@ -390,7 +390,7 @@ const AdminVerification = () => {
                       <div className="text-muted" style={{ fontSize: '0.75rem' }}>{team}</div>
                     </td>
                     <td>
-                      <span className="badge badge-pending">⏳ Pending PM</span>
+                      <span className="badge badge-pending">Pending PM</span>
                     </td>
                   </tr>
                 );

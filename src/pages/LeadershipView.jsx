@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Trophy, Users, ShieldAlert } from 'lucide-react';
+import { Trophy, Users, ShieldAlert, Medal } from 'lucide-react';
 
 const COLORS = ['#00338d', '#1e49e2', '#7213ea', '#fd349c', '#00c0ae'];
 
@@ -91,7 +91,7 @@ const LeadershipView = () => {
         {/* Total Segment External Awards */}
         <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
           <div style={{ background: 'rgba(114, 19, 234, 0.1)', padding: '1rem', borderRadius: '12px', color: 'var(--secondary)' }}>
-            <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>🎖️</span>
+            <Medal size={24} />
           </div>
           <div>
             <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{managerStats.extTotal}</div>

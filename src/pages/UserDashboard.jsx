@@ -583,9 +583,9 @@ const UserDashboard = () => {
                                 {award.description}
                               </td>
                               <td style={{ whiteSpace: 'nowrap' }}>
-                                {award.status === 'Approved' && <span className="badge badge-approved">✅ Approved</span>}
-                                {award.status === 'Pending'  && <span className="badge badge-pending">⏳ Pending</span>}
-                                {award.status === 'Rejected' && <span className="badge badge-rejected" title={award.rejectReason}>❌ Rejected</span>}
+                                {award.status === 'Approved' && <span className="badge badge-approved">Approved</span>}
+                                {award.status === 'Pending'  && <span className="badge badge-pending">Pending</span>}
+                                {award.status === 'Rejected' && <span className="badge badge-rejected" title={award.rejectReason}>Rejected</span>}
                               </td>
                             </tr>
                           ))
