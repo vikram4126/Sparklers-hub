@@ -103,13 +103,13 @@ Purpose: Internal employee recognition platform — employees weekly awards rece
 
 ### Role-Based Access Table:
 
-| Role       | Dashboard | Self-Nom | Nom Team | Winners | Team Approvals | Final Approvals | Design Gen |
-|------------|-----------|----------|----------|---------|----------------|-----------------|------------|
-| User       | YES       | YES      | NO       | YES     | NO             | NO              | NO         |
-| TL / AM    | YES       | YES      | YES      | YES     | YES            | NO              | NO         |
-| Manager    | NO        | NO       | YES      | YES     | YES            | NO              | NO         |
-| AD / Director | NO     | NO       | NO       | YES     | YES            | NO              | NO         |
-| Admin      | YES       | NO       | NO       | YES     | NO             | YES             | YES        |
+| Role       | My Dashboard | Leadership Board | Self-Nom | Nom Team | Winners | Team Approvals | Final Approvals | Design Gen |
+|------------|--------------|------------------|----------|----------|---------|----------------|-----------------|------------|
+| User       | YES          | NO               | YES      | NO       | YES     | NO             | NO              | NO         |
+| TL / AM    | NO           | YES              | YES      | YES      | YES     | YES            | NO              | NO         |
+| Manager    | NO           | YES              | NO       | YES      | YES     | YES            | NO              | NO         |
+| AD / Director | NO        | YES              | NO       | NO       | YES     | NO             | NO              | NO         |
+| Admin      | YES          | NO               | NO       | NO       | YES     | NO             | YES             | YES        |
 
 *Note: Manager, AD, and Director will never self-nominate. AD and Director will never nominate team members either. If a Manager nominates someone, it goes directly to Admin (bypassing the AD).*
 
@@ -122,8 +122,8 @@ Admin role ko top-tier maniye. Jab app load ho:
 `Set(varUserRole, LookUp(Users, Email = User().Email).Role);`
 
 Phir navigation buttons ki `Visible` property ko array check ke through set karein taaki Admin ko User wale features bhi dikhein:
-- Home/Dashboard Visible: `varUserRole in ["User", "Admin", "PM"]`
-- Leadership Board Visible: `varUserRole in ["Manager", "AD", "Director"]`
+- Home/My Dashboard Visible: `varUserRole in ["User", "Admin"]`
+- Leadership Board Visible: `varUserRole in ["PM", "Manager", "AD", "Director"]`
 - Self Nominate Button Visible: `varUserRole in ["User", "Admin", "PM"]` *(Manager, AD, Director cannot self nominate)*
 - Nominate Team Member Visible: `!IsBlank(Filter(Users, PMName = User().FullName)) And varUserRole exactin ["PM", "Manager"]`
 - Final Approvals Button Visible: `varUserRole = "Admin"`
@@ -131,13 +131,12 @@ Phir navigation buttons ki `Visible` property ko array check ke through set kare
 Isse Avinash auto-login hote hi apna dashboard bhi dekh payega, self-nominate bhi kar payega, aur sidebar mein usko "Admin Approvals" ka button bhi dikhega.
 
 **Method 2: Multi-Select Role Column**
-SharePoint `Users` list mein `Role` column ko "Allow multiple selections" kar dein. Avinash ke aage "User" aur "Admin" dono tick karein.
+SharePoint `Users` list mein `Role` column ko "Allow multiple selections" kar edin. Avinash ke aage "User" aur "Admin" dono tick karein.
 Phir PowerApps mein:
 - `Set(varUserRoles, LookUp(Users, Email = User().Email).Role);`
-- Home/Dashboard Visible: `"User" in varUserRoles Or "PM" in varUserRoles`
+- Home/My Dashboard Visible: `"User" in varUserRoles Or "Admin" in varUserRoles`
+- Leadership Board Visible: `"PM" in varUserRoles Or "Manager" in varUserRoles Or "AD" in varUserRoles Or "Director" in varUserRoles`
 - Self Nominate Visible: `"User" in varUserRoles Or "PM" in varUserRoles`
-- Admin Approvals Visible: `"Admin" in varUserRoles`
-
 - Admin Approvals Visible: `"Admin" in varUserRoles`
 
 ### 3.2 Leadership Approval Routing Logic
@@ -1118,5 +1117,81 @@ Power Apps:
 
 ---
 
-*External Awards Feature Documentation — July 2026*
-*React prototype mein implemented, Power Apps migration guide upar hai.*
+## 21. Employee Feedback Feature & AI Impact Analyzer
+
+This feature allows employees (Users, PMs, Managers) to submit constructive feedback for other team members or managers. The app analyzes the feedback description in real-time to compute an **Impact Score (1-10)** using a keyword-weight heuristic.
+
+### 21.1 SharePoint List: Feedbacks
+Create a new SharePoint List named **Feedbacks** with the following schema:
+
+| Column Name    | Type                   | Description                                                |
+|----------------|------------------------|------------------------------------------------------------|
+| ID             | Auto Number            | Primary key                                                |
+| SubmittedBy    | Text                   | Employee who submitted the feedback                        |
+| FeedbackTo     | Text                   | Recipient of the feedback                                  |
+| Category       | Choice                 | Category (Process Improvement, Tooling, Team Culture, etc.) |
+| Description    | Multiline Text         | The detailed feedback content                              |
+| ImpactScore    | Number                 | Calculated impact score (1-10)                             |
+| HasAttachment  | Yes/No                 | True if attachment exists                                  |
+| Acknowledged   | Yes/No                 | Checked by Admin once reviewed                             |
+| SubmittedDate  | Date/Time              | Timestamp of submission                                    |
+
+### 21.2 Power Fx Real-Time Impact Score Calculation
+Add this formula to the **OnChange** or **OnSelect** property of your feedback text input box (`txtFeedbackDescription`), or use it dynamically in a label's `Text` property:
+
+```powerapps
+Set(
+    varImpactScore,
+    Min(
+        10,
+        Max(
+            1,
+            Round(
+                If(IsBlank(txtFeedbackDescription.Text), 0,
+                    // Check keyword occurrences and sum weights
+                    If("automat" in Lower(txtFeedbackDescription.Text), 1.5, 0) +
+                    If("revenue" in Lower(txtFeedbackDescription.Text), 1.4, 0) +
+                    If("cost saving" in Lower(txtFeedbackDescription.Text), 1.4, 0) +
+                    If("save" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("hours" in Lower(txtFeedbackDescription.Text), 0.6, 0) +
+                    If("efficiency" in Lower(txtFeedbackDescription.Text), 1.2, 0) +
+                    If("nps" in Lower(txtFeedbackDescription.Text), 1.3, 0) +
+                    If("client" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("customer" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("error" in Lower(txtFeedbackDescription.Text), 0.6, 0) +
+                    If("reduce" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    If("improve" in Lower(txtFeedbackDescription.Text), 0.5, 0) +
+                    If("increase" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    If("process" in Lower(txtFeedbackDescription.Text), 0.6, 0) +
+                    If("tool" in Lower(txtFeedbackDescription.Text), 0.4, 0) +
+                    If("implement" in Lower(txtFeedbackDescription.Text), 0.6, 0) +
+                    If("data" in Lower(txtFeedbackDescription.Text), 0.5, 0) +
+                    If("risk" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("deadline" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    If("sla" in Lower(txtFeedbackDescription.Text), 1.0, 0) +
+                    If("kpi" in Lower(txtFeedbackDescription.Text), 1.0, 0) +
+                    If("metric" in Lower(txtFeedbackDescription.Text), 0.9, 0) +
+                    If("percent" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("%" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    If("bottleneck" in Lower(txtFeedbackDescription.Text), 0.9, 0) +
+                    If("blocker" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("delay" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    If("manual" in Lower(txtFeedbackDescription.Text), 0.6, 0) +
+                    If("streamline" in Lower(txtFeedbackDescription.Text), 0.8, 0) +
+                    If("pipeline" in Lower(txtFeedbackDescription.Text), 0.7, 0) +
+                    // Length Bonus
+                    If(Len(txtFeedbackDescription.Text) > 100, 0.5, 0) +
+                    If(Len(txtFeedbackDescription.Text) > 200, 0.5, 0) +
+                    If(Len(txtFeedbackDescription.Text) > 350, 0.5, 0)
+                ),
+                0
+            )
+        )
+    )
+)
+```
+
+---
+
+*Feedback & Impact Analyzer Feature Documentation — July 2026*
+*React prototype implemented with real-time keyword analysis card.*

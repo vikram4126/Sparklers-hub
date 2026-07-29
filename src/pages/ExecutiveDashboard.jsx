@@ -78,8 +78,8 @@ const ExecutiveDashboard = () => {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ marginBottom: '0.25rem' }}>Executive Dashboard</h1>
-      <p className="text-muted" style={{ marginBottom: '2rem' }}>Global organization performance, vertical comparisons, and top talent recognition.</p>
+      <h1 style={{ marginBottom: '0.25rem' }}>Welcome, {currentUser}!</h1>
+      <p className="text-muted" style={{ marginBottom: '2rem' }}>Here is the global organization performance, vertical comparisons, and top talent recognition.</p>
 
       {/* Global Summary Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>

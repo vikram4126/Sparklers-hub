@@ -324,6 +324,66 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('sparklers_external_awards_v1', JSON.stringify(externalAwards));
   }, [externalAwards]);
 
+  // ── Feedbacks ────────────────────────────────────────────────────────────
+  const initialFeedbacks = [
+    {
+      id: 2001,
+      submittedBy: 'Parteek',
+      to: 'Abhineet',
+      category: 'Process Improvement',
+      description: 'We should automate the weekly reporting process. Currently it takes 4 hours manually every Friday. Implementing Power Automate could save the team significant time and reduce client delivery errors by at least 30%.',
+      impactScore: 9,
+      hasAttachment: false,
+      submittedAt: '2026-07-15T10:30:00Z',
+      acknowledged: false
+    },
+    {
+      id: 2002,
+      submittedBy: 'Vikram',
+      to: 'Himanshu',
+      category: 'Client Experience',
+      description: 'Client NPS has dropped this quarter. I think we should schedule bi-weekly check-in calls to address pain points proactively.',
+      impactScore: 7,
+      hasAttachment: false,
+      submittedAt: '2026-07-18T14:00:00Z',
+      acknowledged: false
+    },
+    {
+      id: 2003,
+      submittedBy: 'Sivani',
+      to: 'Ameen',
+      category: 'Team Culture',
+      description: 'The team needs more collaboration sessions. It would be great to have monthly design reviews.',
+      impactScore: 4,
+      hasAttachment: false,
+      submittedAt: '2026-07-20T09:15:00Z',
+      acknowledged: true
+    }
+  ];
+
+  const [feedbacks, setFeedbacks] = useState(() => {
+    const saved = localStorage.getItem('sparklers_feedbacks_v1');
+    return saved ? JSON.parse(saved) : initialFeedbacks;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sparklers_feedbacks_v1', JSON.stringify(feedbacks));
+  }, [feedbacks]);
+
+  const addFeedback = (feedback) => {
+    const newFeedback = {
+      ...feedback,
+      id: Date.now(),
+      submittedAt: new Date().toISOString(),
+      acknowledged: false
+    };
+    setFeedbacks(prev => [...prev, newFeedback]);
+  };
+
+  const acknowledgeFeedback = (id) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, acknowledged: true } : f));
+  };
+
   const addExternalAward = (award) => {
     const pm = getPMForUser(award.submittedBy);
     const newAward = {
@@ -442,7 +502,11 @@ export const AppProvider = ({ children }) => {
       externalAwards,
       addExternalAward,
       approveExternalAward,
-      rejectExternalAward
+      rejectExternalAward,
+      // Feedbacks
+      feedbacks,
+      addFeedback,
+      acknowledgeFeedback
     }}>
       {children}
     </AppContext.Provider>

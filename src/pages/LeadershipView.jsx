@@ -72,8 +72,8 @@ const LeadershipView = () => {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ marginBottom: '0.25rem' }}>Manager Dashboard</h1>
-      <p className="text-muted" style={{ marginBottom: '2rem' }}>Segment performance, team breakdown, and high-level analytics.</p>
+      <h1 style={{ marginBottom: '0.25rem' }}>Welcome, {currentUser}!</h1>
+      <p className="text-muted" style={{ marginBottom: '2rem' }}>Here is your segment performance, team breakdown, and high-level analytics.</p>
 
       {/* Stats Summary Row (3 Columns Grid: 3 Stats Cards) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>

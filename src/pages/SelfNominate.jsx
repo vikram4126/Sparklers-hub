@@ -263,14 +263,6 @@ const SelfNominate = () => {
                 />
               </div>
 
-              <div style={{ background: 'rgba(0, 51, 141, 0.05)', border: '1px solid rgba(0, 51, 141, 0.15)', borderRadius: '10px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}><User size={16} /></div>
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '0.875rem' }}>Approval will be sent to: <span style={{ color: 'var(--primary)' }}>{pm}</span></div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Your PM will receive an email notification to approve this award.</div>
-                </div>
-              </div>
-
               {error && (
                 <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem' }}>
                   {error}

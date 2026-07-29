@@ -7,12 +7,14 @@ const AdminVerification = () => {
     nominations, adminApprove, rejectNomination,
     externalAwards, approveExternalAward, rejectExternalAward,
     getPMForUser, getTeamNameForUser,
-    getEffectiveCategory, getEffectiveReason
+    getEffectiveCategory, getEffectiveReason,
+    feedbacks, acknowledgeFeedback
   } = useAppContext();
 
   const [rejectModal, setRejectModal]   = useState({ open: false, id: null, reason: '' });
   const [approveModal, setApproveModal] = useState({ open: false, nom: null, adminCategory: '', adminReason: '' });
   const [searchQuery, setSearchQuery]   = useState('');
+  const [activeTab, setActiveTab]       = useState('nominations');
 
   const filterBySearch = (nom) => {
     if (!searchQuery) return true;
@@ -218,6 +220,101 @@ const AdminVerification = () => {
           />
         </div>
       </div>
+
+      {/* Tab Switcher */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border)', paddingBottom: '0' }}>
+        {[{ id: 'nominations', label: 'Nominations Approvals' }, { id: 'feedbacks', label: 'Employee Feedbacks' }].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '0.6rem 1.25rem', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem',
+              background: 'none', borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent',
+              color: activeTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
+              marginBottom: '-2px', transition: 'all 0.2s ease'
+            }}
+          >
+            {tab.label}
+            {tab.id === 'feedbacks' && feedbacks && feedbacks.filter(f => !f.acknowledged).length > 0 && (
+              <span style={{ marginLeft: '0.5rem', background: 'var(--secondary)', color: 'white', borderRadius: '999px', padding: '0.1rem 0.5rem', fontSize: '0.72rem' }}>
+                {feedbacks.filter(f => !f.acknowledged).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div style={{
+        background: 'rgba(253, 52, 156, 0.07)',
+        border: '1px solid rgba(253, 52, 156, 0.25)',
+        borderRadius: '8px',
+        padding: '0.75rem 1rem',
+        marginBottom: '2rem',
+        fontSize: '0.875rem',
+        color: '#c0186b',
+        marginTop: '1rem'
+      }}>
+        ✅ Once you approve, the nomination will appear on the Leadership Board and the Design Generator.
+      </div>
+      </> /* End nominations tab */}
+
+      {activeTab === 'feedbacks' && (
+        <>
+        <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+          Review employee feedback submitted across the organization. Acknowledge feedbacks to mark them as reviewed.
+        </p>
+        {!feedbacks || feedbacks.length === 0 ? (
+          <div className="glass-panel" style={{ textAlign: 'center', padding: '2rem' }}>
+            <p className="text-muted">No feedbacks submitted yet.</p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Impact Score</th>
+                  <th>Attachment</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...feedbacks].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)).map(fb => {
+                  const scoreColor = fb.impactScore >= 8 ? '#22c55e' : fb.impactScore >= 5 ? '#3b82f6' : fb.impactScore >= 3 ? '#f59e0b' : '#ef4444';
+                  return (
+                    <tr key={fb.id} style={{ opacity: fb.acknowledged ? 0.6 : 1 }}>
+                      <td style={{ fontWeight: '600' }}>{fb.submittedBy}</td>
+                      <td>{fb.to}</td>
+                      <td><span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.6rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>{fb.category}</span></td>
+                      <td style={{ maxWidth: '280px', fontSize: '0.83rem', color: 'var(--text-muted)' }}>{fb.description.length > 100 ? fb.description.slice(0, 100) + '…' : fb.description}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontWeight: '800', fontSize: '1.1rem', color: scoreColor }}>{fb.impactScore}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>/10</span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>{fb.hasAttachment ? '📎' : '—'}</td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(fb.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</td>
+                      <td>
+                        {fb.acknowledged ? (
+                          <span className="badge badge-approved">Acknowledged</span>
+                        ) : (
+                          <button className="btn btn-sm btn-success" onClick={() => acknowledgeFeedback(fb.id)}>Acknowledge</button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        </>
+      )}
+
+      {activeTab === 'nominations' && (<>
 
       <div style={{
         background: 'rgba(253, 52, 156, 0.07)',
@@ -444,6 +541,7 @@ const AdminVerification = () => {
           </tbody>
         </table>
       </div>
+      </>)}
     </div>
   );
 };

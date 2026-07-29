@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users, Award } from 'lucide-react';
+import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users, Award, MessageSquare } from 'lucide-react';
 import { useAppContext, ROLE_USERS } from '../context/AppContext';
 
 const Layout = () => {
-  const { currentRole, setCurrentRole, currentUser, setCurrentUser, nominations, getReporteesForPM, externalAwards } = useAppContext();
+  const { currentRole, setCurrentRole, currentUser, setCurrentUser, nominations, getReporteesForPM, externalAwards, feedbacks } = useAppContext();
   const navigate = useNavigate();
 
   // Dynamic PM pending count based on logged-in user's team
@@ -16,6 +16,7 @@ const Layout = () => {
   const totalPendingPM = pendingSparklers + pendingExt;
   
   const pendingAdmin = nominations.filter(n => n.status === 'PMApproved').length;
+  const unreadFeedbacks = feedbacks ? feedbacks.filter(f => f.to === currentUser && !f.acknowledged).length : 0;
 
   const handleRoleChange = (val) => {
     const [role, user] = val.split(':');
@@ -32,16 +33,16 @@ const Layout = () => {
         </div>
 
         <div className="sidebar-nav">
-          {/* My Dashboard — hidden for Leadership (Managers) and Director */}
-          {['User', 'PM', 'Admin'].includes(currentRole) && (
+          {/* My Dashboard — for User and Admin */}
+          {['User', 'Admin'].includes(currentRole) && (
             <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
               <Home size={20} />
               My Dashboard
             </NavLink>
           )}
 
-          {/* Leadership Board — for Managers (Leadership) and Directors */}
-          {(currentRole === 'Leadership' || currentRole === 'Director') && (
+          {/* Leadership Board — for PM (TLs/AMs), Managers (Leadership) and Directors */}
+          {['PM', 'Leadership', 'Director'].includes(currentRole) && (
             <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
               <Home size={20} />
               Leadership Board
@@ -95,6 +96,19 @@ const Layout = () => {
             <NavLink to="/generator" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Palette size={20} />
               Design Generator
+            </NavLink>
+          )}
+
+          {/* Feedback — visible to all non-admin roles */}
+          {currentRole !== 'Admin' && (
+            <NavLink to="/feedback" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <MessageSquare size={20} />
+              Feedback
+              {unreadFeedbacks > 0 && (
+                <span style={{ marginLeft: 'auto', background: 'var(--secondary)', color: 'white', borderRadius: '999px', padding: '0.1rem 0.5rem', fontSize: '0.75rem' }}>
+                  {unreadFeedbacks}
+                </span>
+              )}
             </NavLink>
           )}
 

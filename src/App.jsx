@@ -11,12 +11,13 @@ import LeadershipView from './pages/LeadershipView';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import PMApprovals from './pages/PMApprovals';
 import SelfNominate from './pages/SelfNominate';
+import Feedback from './pages/Feedback';
 
 const RoleBasedHome = () => {
   const { currentRole } = useAppContext();
   switch (currentRole) {
     case 'Admin':      return <UserDashboard />;
-    case 'PM':         return <UserDashboard />;
+    case 'PM':         return <LeadershipView />;
     case 'Leadership': return <LeadershipView />;     // Managers (Sol/Ashok) — AM-style dashboard + charts
     case 'Director':   return <ExecutiveDashboard />; // Kumaran/Krishan — Executive overview
     default:           return <UserDashboard />;
@@ -36,6 +37,7 @@ function App() {
             <Route path="pm-approvals" element={<PMApprovals />} />
             <Route path="admin" element={<AdminVerification />} />
             <Route path="generator" element={<DesignGeneratorPreview />} />
+            <Route path="feedback" element={<Feedback />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
