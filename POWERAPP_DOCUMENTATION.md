@@ -1117,9 +1117,9 @@ Power Apps:
 
 ---
 
-## 21. Employee Feedback Feature & AI Impact Analyzer
+## 21. Employee Feedback Feature & Analyzer
 
-This feature allows employees (Users, PMs, Managers) to submit constructive feedback for other team members or managers. The app analyzes the feedback description in real-time to compute an **Impact Score (1-10)** using a keyword-weight heuristic.
+This feature allows employees to log feedback they received from clients (e.g. from Outlook) to build their personal portfolio. The app automatically determines the feedback category and impact score in real-time using keyword analysis.
 
 ### 21.1 SharePoint List: Feedbacks
 Create a new SharePoint List named **Feedbacks** with the following schema:
@@ -1127,12 +1127,11 @@ Create a new SharePoint List named **Feedbacks** with the following schema:
 | Column Name    | Type                   | Description                                                |
 |----------------|------------------------|------------------------------------------------------------|
 | ID             | Auto Number            | Primary key                                                |
-| SubmittedBy    | Text                   | Employee who submitted the feedback                        |
-| FeedbackTo     | Text                   | Recipient of the feedback                                  |
-| Category       | Choice                 | Category (Process Improvement, Tooling, Team Culture, etc.) |
-| Description    | Multiline Text         | The detailed feedback content                              |
+| SubmittedBy    | Text                   | Employee who received & logged the feedback                |
+| Category       | Text                   | Auto-categorized value (Client Appreciation, Team, etc.)   |
+| Description    | Multiline Text         | The detailed feedback text pasted from client email        |
 | ImpactScore    | Number                 | Calculated impact score (1-10)                             |
-| HasAttachment  | Yes/No                 | True if attachment exists                                  |
+| HasAttachment  | Yes/No                 | True if email screenshot or PDF attachment exists          |
 | Acknowledged   | Yes/No                 | Checked by Admin once reviewed                             |
 | SubmittedDate  | Date/Time              | Timestamp of submission                                    |
 
@@ -1185,6 +1184,66 @@ Set(
                     If(Len(txtFeedbackDescription.Text) > 350, 0.5, 0)
                 ),
                 0
+            )
+        )
+    )
+);
+
+Set(
+    varDetectedCategory,
+    If(
+        IsBlank(txtFeedbackDescription.Text) || Len(txtFeedbackDescription.Text) < 5,
+        "General Appreciation",
+        If(
+            Or(
+                "automat" in Lower(txtFeedbackDescription.Text),
+                "power automate" in Lower(txtFeedbackDescription.Text),
+                "workflow" in Lower(txtFeedbackDescription.Text),
+                "process" in Lower(txtFeedbackDescription.Text),
+                "streamline" in Lower(txtFeedbackDescription.Text),
+                "efficiency" in Lower(txtFeedbackDescription.Text),
+                "save hours" in Lower(txtFeedbackDescription.Text)
+            ),
+            "Process Efficiency",
+            If(
+                Or(
+                    "nps" in Lower(txtFeedbackDescription.Text),
+                    "client" in Lower(txtFeedbackDescription.Text),
+                    "customer" in Lower(txtFeedbackDescription.Text),
+                    "delight" in Lower(txtFeedbackDescription.Text),
+                    "support" in Lower(txtFeedbackDescription.Text),
+                    "satisfaction" in Lower(txtFeedbackDescription.Text),
+                    "feedback" in Lower(txtFeedbackDescription.Text),
+                    "outlook" in Lower(txtFeedbackDescription.Text)
+                ),
+                "Client Appreciation",
+                If(
+                    Or(
+                        "team" in Lower(txtFeedbackDescription.Text),
+                        "culture" in Lower(txtFeedbackDescription.Text),
+                        "collaborate" in Lower(txtFeedbackDescription.Text),
+                        "mentor" in Lower(txtFeedbackDescription.Text),
+                        "help" in Lower(txtFeedbackDescription.Text),
+                        "supportive" in Lower(txtFeedbackDescription.Text),
+                        "relationship" in Lower(txtFeedbackDescription.Text),
+                        "people" in Lower(txtFeedbackDescription.Text)
+                    ),
+                    "Team & Culture",
+                    If(
+                        Or(
+                            "technical" in Lower(txtFeedbackDescription.Text),
+                            "code" in Lower(txtFeedbackDescription.Text),
+                            "architecture" in Lower(txtFeedbackDescription.Text),
+                            "bug" in Lower(txtFeedbackDescription.Text),
+                            "fix" in Lower(txtFeedbackDescription.Text),
+                            "design" in Lower(txtFeedbackDescription.Text),
+                            "develop" in Lower(txtFeedbackDescription.Text),
+                            "delivery" in Lower(txtFeedbackDescription.Text)
+                        ),
+                        "Technical Excellence",
+                        "General Appreciation"
+                    )
+                )
             )
         )
     )

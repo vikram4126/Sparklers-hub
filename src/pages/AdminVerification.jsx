@@ -244,19 +244,6 @@ const AdminVerification = () => {
         ))}
       </div>
 
-      <div style={{
-        background: 'rgba(253, 52, 156, 0.07)',
-        border: '1px solid rgba(253, 52, 156, 0.25)',
-        borderRadius: '8px',
-        padding: '0.75rem 1rem',
-        marginBottom: '2rem',
-        fontSize: '0.875rem',
-        color: '#c0186b',
-        marginTop: '1rem'
-      }}>
-        ✅ Once you approve, the nomination will appear on the Leadership Board and the Design Generator.
-      </div>
-      </> /* End nominations tab */}
 
       {activeTab === 'feedbacks' && (
         <>
@@ -272,9 +259,8 @@ const AdminVerification = () => {
             <table>
               <thead>
                 <tr>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Category</th>
+                  <th>Employee</th>
+                  <th>Auto-Category</th>
                   <th>Description</th>
                   <th>Impact Score</th>
                   <th>Attachment</th>
@@ -288,7 +274,6 @@ const AdminVerification = () => {
                   return (
                     <tr key={fb.id} style={{ opacity: fb.acknowledged ? 0.6 : 1 }}>
                       <td style={{ fontWeight: '600' }}>{fb.submittedBy}</td>
-                      <td>{fb.to}</td>
                       <td><span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.6rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>{fb.category}</span></td>
                       <td style={{ maxWidth: '280px', fontSize: '0.83rem', color: 'var(--text-muted)' }}>{fb.description.length > 100 ? fb.description.slice(0, 100) + '…' : fb.description}</td>
                       <td style={{ textAlign: 'center' }}>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { useAppContext, PM_TEAM_MAP } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Send, Paperclip, X, Zap } from 'lucide-react';
+import { MessageSquare, Send, Paperclip, X, Zap, Award } from 'lucide-react';
 
 // ── Keyword Weight Dictionary (simulates SharePoint KeywordWeights list) ─────
 const KEYWORD_WEIGHTS = [
@@ -37,27 +37,44 @@ const KEYWORD_WEIGHTS = [
   { keyword: 'pipeline', weight: 0.7 },
 ];
 
+const detectCategory = (text) => {
+  if (!text || text.trim().length < 5) return 'General Appreciation';
+  const lower = text.toLowerCase();
+  if (/automat|power automate|workflow|process|streamline|efficiency|save hours/.test(lower)) {
+    return 'Process Efficiency';
+  }
+  if (/nps|client|customer|delight|support|satisfaction|feedback|outlook/.test(lower)) {
+    return 'Client Appreciation';
+  }
+  if (/team|culture|collaborate|mentor|help|supportive|relationship|people/.test(lower)) {
+    return 'Team & Culture';
+  }
+  if (/technical|code|architecture|bug|fix|design|develop|delivery/.test(lower)) {
+    return 'Technical Excellence';
+  }
+  return 'General Appreciation';
+};
+
 const getAssessment = (text, score) => {
   const lower = text.toLowerCase();
   const insights = [];
   const recommendations = [];
 
-  if (/automat|power automate|tool|software/.test(lower)) insights.push({ icon: '⚙️', text: 'Automation opportunity identified' });
-  if (/nps|client|customer/.test(lower)) insights.push({ icon: '🤝', text: 'Client experience impact detected' });
-  if (/\d+\s*%|percent|hours|cost|revenue|saving/.test(lower)) insights.push({ icon: '📊', text: 'Quantified with measurable metrics' });
-  if (/risk|sla|kpi|deadline/.test(lower)) insights.push({ icon: '🚨', text: 'Business risk or KPI reference found' });
-  if (text.length > 200) insights.push({ icon: '📝', text: 'Well-detailed explanation provided' });
+  if (/automat|power automate|tool|software/.test(lower)) insights.push({ icon: '⚙️', text: 'Automation reference detected' });
+  if (/nps|client|customer/.test(lower)) insights.push({ icon: '🤝', text: 'Direct client impact recognized' });
+  if (/\d+\s*%|percent|hours|cost|revenue|saving/.test(lower)) insights.push({ icon: '📊', text: 'Quantified with metrics/savings' });
+  if (/risk|sla|kpi|deadline/.test(lower)) insights.push({ icon: '🚨', text: 'Performance metric/risk reference' });
+  if (text.length > 200) insights.push({ icon: '📝', text: 'Highly detailed context provided' });
 
   if (score < 4) {
-    recommendations.push('Add specific numbers (e.g., hours saved, % improvement)');
-    recommendations.push('Mention business impact on clients or revenue');
-    recommendations.push('Describe the root cause of the problem');
+    recommendations.push('Include specific numbers or metrics (e.g., "saved 4 hours weekly")');
+    recommendations.push('Add client name or specific project reference');
+    recommendations.push('Detail how this improved the current workflow');
   } else if (score < 7) {
-    recommendations.push('Quantify the expected outcome (e.g., "reduce errors by 30%")');
-    recommendations.push('Link to a KPI or team goal for stronger context');
+    recommendations.push('Quantify the outcome (e.g. "reduced processing errors by 25%")');
+    recommendations.push('Mention which client or team KPI this directly impacts');
   } else {
-    recommendations.push('Great detail! Consider adding a proposed solution or tool');
-    recommendations.push('Mention timeline or urgency if applicable');
+    recommendations.push('Excellent feedback! Ready for submission.');
   }
 
   return { insights, recommendations };
@@ -77,12 +94,6 @@ const calcImpactScore = (text) => {
   if (text.length > 350) raw += 0.5;
   return Math.min(10, Math.max(1, Math.round(raw)));
 };
-
-const FEEDBACK_CATEGORIES = [
-  'Process Improvement', 'Client Experience', 'Team Culture',
-  'Innovation', 'Communication', 'Resource Allocation',
-  'Training & Development', 'Tool / Technology', 'Other',
-];
 
 const ScoreColor = (score) => {
   if (score === 0) return '#9ca3af';
@@ -106,20 +117,19 @@ export default function Feedback() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  const allUsers = useMemo(() => {
-    const everyone = [...Object.keys(PM_TEAM_MAP), ...Object.values(PM_TEAM_MAP).flat()];
-    return [...new Set(everyone)].filter(u => u !== currentUser).sort();
-  }, [currentUser]);
-
-  const [form, setForm] = useState({ category: '', to: '', description: '', fileName: '' });
+  const [form, setForm] = useState({ description: '', fileName: '' });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  const computedCategory = useMemo(() => detectCategory(form.description), [form.description]);
   const impactScore = useMemo(() => calcImpactScore(form.description), [form.description]);
   const { insights, recommendations } = useMemo(() => getAssessment(form.description, impactScore), [form.description, impactScore]);
   const scoreColor = ScoreColor(impactScore);
 
-  const handleChange = (field, value) => { setForm(prev => ({ ...prev, [field]: value })); setError(''); };
+  const handleChange = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setError('');
+  };
 
   const handleFile = (e) => {
     const file = e.target.files[0];
@@ -128,25 +138,34 @@ export default function Feedback() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.category) return setError('Please select a feedback category.');
-    if (!form.to) return setError('Please select who this feedback is for.');
-    if (!form.description.trim() || form.description.trim().length < 20) return setError('Please write a more detailed feedback (at least 20 characters).');
-    addFeedback({ submittedBy: currentUser, to: form.to, category: form.category, description: form.description.trim(), impactScore, hasAttachment: !!form.fileName, attachmentName: form.fileName || null });
+    if (!form.description.trim() || form.description.trim().length < 20) {
+      return setError('Please write or paste a more detailed feedback (at least 20 characters).');
+    }
+    addFeedback({
+      submittedBy: currentUser,
+      category: computedCategory,
+      description: form.description.trim(),
+      impactScore,
+      hasAttachment: !!form.fileName,
+      attachmentName: form.fileName || null,
+    });
     setSubmitted(true);
   };
 
   if (submitted) {
     return (
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
-        <h1 style={{ marginBottom: '0.5rem' }}>Feedback Submitted!</h1>
-        <p className="text-muted" style={{ maxWidth: '420px', marginBottom: '0.5rem' }}>Your feedback has been sent to <strong>{form.to}</strong>.</p>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
+        <h1 style={{ marginBottom: '0.5rem' }}>Feedback Successfully Logged!</h1>
+        <p className="text-muted" style={{ maxWidth: '420px', marginBottom: '0.5rem' }}>
+          Your client feedback has been added to your portfolio.
+        </p>
         <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '2rem' }}>
-          Impact Score: <strong style={{ color: scoreColor }}>{impactScore}/10 — {ScoreLabel(impactScore)}</strong>
+          Auto-Detected Category: <strong>{computedCategory}</strong> | Impact: <strong style={{ color: scoreColor }}>{impactScore}/10 — {ScoreLabel(impactScore)}</strong>
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button className="btn btn-primary" onClick={() => navigate('/')}>Back to Dashboard</button>
-          <button className="btn btn-secondary" onClick={() => { setSubmitted(false); setForm({ category: '', to: '', description: '', fileName: '' }); }}>Submit Another</button>
+          <button className="btn btn-secondary" onClick={() => { setSubmitted(false); setForm({ description: '', fileName: '' }); }}>Log Another Feedback</button>
         </div>
       </div>
     );
@@ -155,8 +174,8 @@ export default function Feedback() {
   return (
     <div className="animate-fade-in">
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.25rem' }}>Submit Feedback</h1>
-        <p className="text-muted">Share constructive feedback to help improve processes, culture, and client experience.</p>
+        <h1 style={{ marginBottom: '0.25rem' }}>Log Client Feedback</h1>
+        <p className="text-muted">Paste feedback you received from client emails (e.g. Outlook) to evaluate impact and save to your portfolio.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
@@ -165,41 +184,22 @@ export default function Feedback() {
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
-              <label className="form-label">Category <span style={{ color: 'var(--accent)' }}>*</span></label>
-              <select className="form-select" value={form.category} onChange={e => handleChange('category', e.target.value)} style={{ width: '100%' }} required>
-                <option value="">— Select feedback category —</option>
-                {FEEDBACK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Feedback For <span style={{ color: 'var(--accent)' }}>*</span></label>
-              <select className="form-select" value={form.to} onChange={e => handleChange('to', e.target.value)} style={{ width: '100%' }} required>
-                <option value="">— Select recipient —</option>
-                {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-
-            <div>
               <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Feedback Description <span style={{ color: 'var(--accent)' }}>*</span></span>
+                <span>Paste Outlook / Client Feedback Text <span style={{ color: 'var(--accent)' }}>*</span></span>
                 <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 400 }}>{form.description.length} chars</span>
               </label>
               <textarea
-                className="form-input" rows="8"
+                className="form-input" rows="12"
                 style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
-                placeholder="Describe your feedback in detail. Include numbers, percentages, and client/business impact to improve your Impact Score…"
+                placeholder="Paste the email or feedback content here. The Analyzer on the right will automatically classify the category and score its impact in real-time…"
                 value={form.description}
                 onChange={e => handleChange('description', e.target.value)}
                 required
               />
-              <p className="text-muted" style={{ fontSize: '0.75rem', marginTop: '0.35rem' }}>
-                💡 Tip: Include metrics like hours saved, % improvement, or cost/revenue impact for a higher score.
-              </p>
             </div>
 
             <div>
-              <label className="form-label">Attachment <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
+              <label className="form-label">Attachment Email Snapshot <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
               <div
                 style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
                 onClick={() => fileInputRef.current?.click()}
@@ -215,7 +215,7 @@ export default function Feedback() {
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                     <Paperclip size={18} style={{ marginBottom: '0.25rem' }} />
-                    <div>Click to attach a file (PDF, image, doc)</div>
+                    <div>Click to attach Outlook screenshot or PDF</div>
                   </div>
                 )}
                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
@@ -231,7 +231,7 @@ export default function Feedback() {
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button type="button" className="btn btn-secondary" onClick={() => navigate('/')} style={{ flex: 1 }}>Cancel</button>
               <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
-                <Send size={16} /> Submit Feedback
+                <Send size={16} /> Log Feedback
               </button>
             </div>
           </form>
@@ -252,8 +252,17 @@ export default function Feedback() {
                 <Zap size={16} color="white" />
               </div>
               <div>
-                <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Impact Analyzer</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Powered by keyword scoring</div>
+                <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Feedback Analyzer</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Auto-classifies content & impact</div>
+              </div>
+            </div>
+
+            {/* Auto Category */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifySelf: 'stretch', gap: '0.75rem' }}>
+              <Award size={18} color="var(--primary)" />
+              <div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Auto-Category</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>{computedCategory}</div>
               </div>
             </div>
 
@@ -330,7 +339,7 @@ export default function Feedback() {
             {impactScore === 0 && (
               <div style={{ textAlign: 'center', padding: '1rem 0', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
                 <MessageSquare size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                <div>Start typing to see your<br />real-time impact score</div>
+                <div>Start typing or paste client feedback to evaluate impact</div>
               </div>
             )}
           </div>

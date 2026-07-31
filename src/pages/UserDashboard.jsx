@@ -18,7 +18,7 @@ const getFiscalYear = (dateStr) => {
 const getCurrentFY = () => getFiscalYear(new Date().toISOString());
 
 const UserDashboard = () => {
-  const { nominations, currentUser, currentRole, getPMForUser, getTeamNameForUser, getDepartmentForUser, getEffectiveCategory, getEffectiveReason, getReporteesForPM, externalAwards } = useAppContext();
+  const { nominations, currentUser, currentRole, getPMForUser, getTeamNameForUser, getDepartmentForUser, getEffectiveCategory, getEffectiveReason, getReporteesForPM, externalAwards, feedbacks } = useAppContext();
   const navigate = useNavigate();
 
   const [selectedFY, setSelectedFY] = useState(getCurrentFY());
@@ -26,6 +26,8 @@ const UserDashboard = () => {
   // Filtering state for Other Awards
   const [otherAwardsYear, setOtherAwardsYear] = useState('All Time');
   const [otherAwardsPlatform, setOtherAwardsPlatform] = useState('All Platforms');
+  const [portfolioTab, setPortfolioTab] = useState('sparklers');
+  const [feedbackCategory, setFeedbackCategory] = useState('All Categories');
 
   // All approved awards for current user
   const allMyAwards = useMemo(() => {
@@ -402,6 +404,7 @@ const UserDashboard = () => {
             </div>
           </div>
 
+
           {/* Stats & Leaderboards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             {/* My Badge Card */}
@@ -440,6 +443,41 @@ const UserDashboard = () => {
                   <span className="text-muted" style={{ fontSize: '0.85rem' }}>No awards yet. Nominate yourself!</span>
                 )}
               </div>
+              {/* ── 3 Stat Boxes below badge ── */}
+              {(() => {
+                const totalOther = externalAwards.filter(a => a.submittedBy === currentUser).length;
+                const myFbs = (feedbacks || []).filter(f => f.submittedBy === currentUser);
+                const avgImpact = myFbs.length > 0
+                  ? (myFbs.reduce((s, f) => s + (f.impactScore || 0), 0) / myFbs.length).toFixed(1)
+                  : null;
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem', width: '100%', marginTop: '1.25rem' }}>
+                    {[
+                      { emoji: '⚡', value: userStats.total, label: 'Sparklers', sub: 'Awards', tab: 'sparklers', color: '#00338d' },
+                      { emoji: '🎖️', value: totalOther,     label: 'Other',     sub: 'Awards',   tab: 'other',     color: '#7c3aed' },
+                      { emoji: '💬', value: myFbs.length,   label: 'Client',    sub: avgImpact ? `Avg ${avgImpact}/10` : 'Feedbacks', tab: 'feedbacks', color: '#059669' },
+                    ].map(stat => (
+                      <button key={stat.tab} onClick={() => { setPortfolioTab(stat.tab); document.getElementById('my-portfolio')?.scrollIntoView({ behavior: 'smooth' }); }} style={{
+                        border: `1.5px solid ${stat.color}22`,
+                        borderRadius: '12px',
+                        padding: '0.7rem 0.5rem',
+                        background: `${stat.color}0a`,
+                        cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem',
+                        transition: 'all 0.18s ease',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = `${stat.color}18`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = `${stat.color}0a`; e.currentTarget.style.transform = 'translateY(0)'; }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>{stat.emoji}</span>
+                        <span style={{ fontSize: '1.5rem', fontWeight: '800', color: stat.color, lineHeight: 1.1 }}>{stat.value}</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: '700', color: stat.color, textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>{stat.label}</span>
+                        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{stat.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Leaderboard */}
@@ -487,73 +525,149 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          {/* My Achievement Locker */}
+          {/* ── My Portfolio (Unified 3-Tab Section) ───────────────────────────── */}
           {(() => {
             const myExternal = externalAwards.filter(a => a.submittedBy === currentUser);
-            
-            // Extract distinct years and platforms for filters
-            const otherYears = ['All Time', ...Array.from(new Set(myExternal.map(a => new Date(a.dateReceived).getFullYear().toString()))).sort().reverse()];
-            const otherPlatforms = ['All Platforms', ...Array.from(new Set(myExternal.map(a => a.platform))).filter(Boolean).sort()];
-            
-            // Filter data
-            let filteredExternal = myExternal.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-            if (otherAwardsYear !== 'All Time') {
-              filteredExternal = filteredExternal.filter(a => new Date(a.dateReceived).getFullYear().toString() === otherAwardsYear);
-            }
-            if (otherAwardsPlatform !== 'All Platforms') {
-              filteredExternal = filteredExternal.filter(a => a.platform === otherAwardsPlatform);
-            }
-            
+            const myFeedbacks = (feedbacks || []).filter(f => f.submittedBy === currentUser);
             const pendingExt = myExternal.filter(a => a.status === 'Pending');
 
+            // Other Awards filters
+            const otherYears = ['All Time', ...Array.from(new Set(myExternal.map(a => new Date(a.dateReceived).getFullYear().toString()))).sort().reverse()];
+            const otherPlatforms = ['All Platforms', ...Array.from(new Set(myExternal.map(a => a.platform))).filter(Boolean).sort()];
+            let filteredExternal = myExternal.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+            if (otherAwardsYear !== 'All Time') filteredExternal = filteredExternal.filter(a => new Date(a.dateReceived).getFullYear().toString() === otherAwardsYear);
+            if (otherAwardsPlatform !== 'All Platforms') filteredExternal = filteredExternal.filter(a => a.platform === otherAwardsPlatform);
+
+            // Feedbacks filter
+            const feedbackCategories = ['All Categories', ...Array.from(new Set(myFeedbacks.map(f => f.category))).filter(Boolean).sort()];
+            const filteredFeedbacks = feedbackCategory === 'All Categories' ? myFeedbacks.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)) : myFeedbacks.filter(f => f.category === feedbackCategory).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+            const TABS = [
+              { id: 'sparklers', label: '⚡ Sparklers Awards', count: filteredAwards.length },
+              { id: 'other',     label: '🎖️ Other Awards',    count: myExternal.length, badge: pendingExt.length > 0 ? pendingExt.length : null },
+              { id: 'feedbacks', label: '💬 Client Feedbacks', count: myFeedbacks.length },
+            ];
+
+            const avgImpact = myFeedbacks.length > 0
+              ? (myFeedbacks.reduce((s, f) => s + (f.impactScore || 0), 0) / myFeedbacks.length).toFixed(1)
+              : null;
+
             return (
-              <div style={{ marginTop: '3rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div id="my-portfolio" style={{ marginTop: '3rem' }}>
+                {/* Portfolio Header + Filters Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <Award size={22} color="var(--primary)" />
-                    <h3 style={{ margin: 0 }}>My Achievement Locker</h3>
+                    <h3 style={{ margin: 0 }}>My Portfolio</h3>
                     {pendingExt.length > 0 && (
                       <span style={{ background: '#f59e0b', color: 'white', borderRadius: '999px', padding: '0.1rem 0.55rem', fontSize: '0.72rem', fontWeight: '700' }}>
                         {pendingExt.length} pending
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <select
-                      className="form-select"
-                      value={otherAwardsPlatform}
-                      onChange={e => setOtherAwardsPlatform(e.target.value)}
-                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}
-                    >
-                      {otherPlatforms.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                    <select
-                      className="form-select"
-                      value={otherAwardsYear}
-                      onChange={e => setOtherAwardsYear(e.target.value)}
-                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}
-                    >
-                      {otherYears.map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                    <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => navigate('/self-nominate')}>
-                      + Log an Award
-                    </button>
+
+                  {/* Per-tab filter controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                    {portfolioTab === 'sparklers' && (
+                      <select className="form-select" value={selectedFY} onChange={e => setSelectedFY(e.target.value)} style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}>
+                        {fyOptions.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                      </select>
+                    )}
+                    {portfolioTab === 'other' && (<>
+                      <select className="form-select" value={otherAwardsPlatform} onChange={e => setOtherAwardsPlatform(e.target.value)} style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}>
+                        {otherPlatforms.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                      <select className="form-select" value={otherAwardsYear} onChange={e => setOtherAwardsYear(e.target.value)} style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}>
+                        {otherYears.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                      <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => navigate('/self-nominate')}>
+                        + Log Award
+                      </button>
+                    </>)}
+                    {portfolioTab === 'feedbacks' && (<>
+                      <select className="form-select" value={feedbackCategory} onChange={e => setFeedbackCategory(e.target.value)} style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', borderRadius: '8px' }}>
+                        {feedbackCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <button className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }} onClick={() => navigate('/feedback')}>
+                        + Log Feedback
+                      </button>
+                    </>)}
                   </div>
                 </div>
 
-                {myExternal.length === 0 ? (
+
+                {/* Tab Switcher */}
+                <div style={{ display: 'flex', gap: '0.1rem', borderBottom: '2px solid var(--border)', marginTop: '1rem', marginBottom: '1.5rem' }}>
+                  {TABS.map(tab => (
+                    <button key={tab.id} onClick={() => setPortfolioTab(tab.id)} style={{
+                      padding: '0.6rem 1.3rem', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem',
+                      background: 'none', borderBottom: portfolioTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent',
+                      color: portfolioTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
+                      marginBottom: '-2px', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    }}>
+                      {tab.label}
+                      {tab.badge && (
+                        <span style={{ background: '#f59e0b', color: 'white', borderRadius: '999px', padding: '0.05rem 0.45rem', fontSize: '0.68rem', fontWeight: '700' }}>
+                          {tab.badge}
+                        </span>
+                      )}
+                      {!tab.badge && tab.count > 0 && (
+                        <span style={{ background: 'var(--surface-hover)', color: 'var(--text-muted)', borderRadius: '999px', padding: '0.05rem 0.45rem', fontSize: '0.68rem', fontWeight: '600' }}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* ── TAB: Sparklers Awards ── */}
+                {portfolioTab === 'sparklers' && (filteredAwards.length === 0 ? (
+                  <div className="glass-panel" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p className="text-muted">
+                      {selectedFY === 'All Time'
+                        ? "You haven't received any Sparklers awards yet. Keep up the great work!"
+                        : `No awards found for ${selectedFY}.`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Category</th>
+                          <th>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredAwards.map(award => (
+                          <tr key={award.id}>
+                            <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                              {award.date ? new Date(award.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                            </td>
+                            <td><span className="badge badge-category">{getEffectiveCategory(award)}</span></td>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '400px' }}>{getEffectiveReason(award)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+
+                {/* ── TAB: Other Awards ── */}
+                {portfolioTab === 'other' && (myExternal.length === 0 ? (
                   <div className="glass-panel" style={{ textAlign: 'center', padding: '2.5rem' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏆</div>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎖️</div>
                     <p style={{ fontWeight: '600', marginBottom: '0.4rem' }}>No external awards logged yet</p>
                     <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
-                      Received a Rising Star, Kudos, or any other award on a different platform?<br />Add it here to build your complete achievement portfolio.
+                      Received a Rising Star, Kudos, or any award on another platform?<br />Add it here to build your full achievement portfolio.
                     </p>
                     <button className="btn btn-primary" onClick={() => navigate('/self-nominate')}>
                       <Award size={16} /> Log Your First Award
                     </button>
                   </div>
                 ) : (
-                  <div className="table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
                     <table style={{ minWidth: '800px' }}>
                       <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg)' }}>
                         <tr>
@@ -567,89 +681,87 @@ const UserDashboard = () => {
                       <tbody>
                         {filteredExternal.length === 0 ? (
                           <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No awards match the selected filters.</td></tr>
-                        ) : (
-                          filteredExternal.map(award => (
-                            <tr key={award.id}>
-                              <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>
-                                {new Date(award.dateReceived).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </td>
-                              <td style={{ fontWeight: '700', color: 'var(--text)' }}>{award.awardName}</td>
-                              <td>
-                                <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.5rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>
-                                  {award.platform}
-                                </span>
-                              </td>
-                              <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '300px' }}>
-                                {award.description}
-                              </td>
-                              <td style={{ whiteSpace: 'nowrap' }}>
-                                {award.status === 'Approved' && <span className="badge badge-approved">Approved</span>}
-                                {award.status === 'Pending'  && <span className="badge badge-pending">Pending</span>}
-                                {award.status === 'Rejected' && <span className="badge badge-rejected" title={award.rejectReason}>Rejected</span>}
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                        ) : filteredExternal.map(award => (
+                          <tr key={award.id}>
+                            <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                              {new Date(award.dateReceived).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td style={{ fontWeight: '700' }}>{award.awardName}</td>
+                            <td>
+                              <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.5rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>
+                                {award.platform}
+                              </span>
+                            </td>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '300px' }}>{award.description}</td>
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              {award.status === 'Approved' && <span className="badge badge-approved">Approved</span>}
+                              {award.status === 'Pending'  && <span className="badge badge-pending">Pending</span>}
+                              {award.status === 'Rejected' && <span className="badge badge-rejected" title={award.rejectReason}>Rejected</span>}
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                )}
+                ))}
+
+                {/* ── TAB: Client Feedbacks ── */}
+                {portfolioTab === 'feedbacks' && (myFeedbacks.length === 0 ? (
+                  <div className="glass-panel" style={{ textAlign: 'center', padding: '2.5rem' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💬</div>
+                    <p style={{ fontWeight: '600', marginBottom: '0.4rem' }}>No client feedbacks logged yet</p>
+                    <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+                      Received appreciation from a client via Outlook or email?<br />Log it here to build your impact portfolio.
+                    </p>
+                    <button className="btn btn-primary" onClick={() => navigate('/feedback')}>
+                      💬 Log Your First Feedback
+                    </button>
+                  </div>
+                ) : (
+                  <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+                    <table style={{ minWidth: '700px' }}>
+                      <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg)' }}>
+                        <tr>
+                          <th>Date</th>
+                          <th>Category</th>
+                          <th>Feedback Snippet</th>
+                          <th>Impact Score</th>
+                          <th>Attachment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredFeedbacks.length === 0 ? (
+                          <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No feedbacks match the selected category.</td></tr>
+                        ) : filteredFeedbacks.map(fb => {
+                          const scoreColor = fb.impactScore >= 8 ? '#22c55e' : fb.impactScore >= 5 ? '#3b82f6' : fb.impactScore >= 3 ? '#f59e0b' : '#ef4444';
+                          return (
+                            <tr key={fb.id}>
+                              <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                {new Date(fb.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </td>
+                              <td>
+                                <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.6rem', borderRadius: '8px', whiteSpace: 'nowrap' }}>
+                                  {fb.category}
+                                </span>
+                              </td>
+                              <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '340px' }}>
+                                {fb.description.length > 90 ? fb.description.slice(0, 90) + '…' : fb.description}
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <span style={{ fontWeight: '800', fontSize: '1.1rem', color: scoreColor }}>{fb.impactScore}</span>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>/10</span>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>{fb.hasAttachment ? '📎' : '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
               </div>
             );
           })()}
-
-          {/* My Past Wins Section */}
-          <div style={{ marginTop: '3rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <h3 style={{ margin: 0 }}>My Past Wins</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Year:</span>
-                <select
-                  className="form-select"
-                  value={selectedFY}
-                  onChange={e => setSelectedFY(e.target.value)}
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.875rem', width: 'auto', cursor: 'pointer', borderRadius: '8px' }}
-                >
-                  {fyOptions.map(fy => (
-                    <option key={fy} value={fy}>{fy}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {filteredAwards.length === 0 ? (
-              <div className="glass-panel" style={{ textAlign: 'center', padding: '2rem' }}>
-                <p className="text-muted">
-                  {selectedFY === 'All Time'
-                    ? "You haven't received any awards yet. Keep up the great work!"
-                    : `No awards found for ${selectedFY}.`}
-                </p>
-              </div>
-            ) : (
-              <div className="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Category</th>
-                      <th>Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAwards.map(award => (
-                      <tr key={award.id}>
-                        <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>
-                          {award.date ? new Date(award.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                        </td>
-                        <td><span className="badge badge-category">{getEffectiveCategory(award)}</span></td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '400px' }}>{getEffectiveReason(award)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
         </>
       )}
     </div>
