@@ -13,6 +13,7 @@ const SelfNominate = () => {
   // Sparklers State
   const [category, setCategory] = useState('');
   const [reason, setReason] = useState('');
+  const [hoursSaved, setHoursSaved] = useState('');
   const [sparklersSubmitted, setSparklersSubmitted] = useState(false);
 
   // Other Awards State
@@ -33,6 +34,7 @@ const SelfNominate = () => {
         name: currentUser, 
         category, 
         reason,
+        hoursSaved: Number(hoursSaved) || 0,
         status: ['Kumaran', 'Krishan'].includes(pm) ? 'PMApproved' : 'Pending'
       });
       setSparklersSubmitted(true);
@@ -155,6 +157,27 @@ const SelfNominate = () => {
                   ))}
                 </select>
               </div>
+
+              {category === 'Process & Efficiency' && (
+                <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
+                  <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700' }}>
+                    ⏱️ Hours Saved per Week/Month
+                  </label>
+                  <input 
+                    type="number"
+                    min="0"
+                    max="500"
+                    className="form-input"
+                    placeholder="e.g. 20 (Hours saved through your automation or process fix)"
+                    value={hoursSaved}
+                    onChange={(e) => setHoursSaved(e.target.value)}
+                    style={{ width: '100%' }}
+                  />
+                  <small style={{ display: 'block', marginTop: '0.4rem', color: 'var(--text-muted)' }}>
+                    💡 Your contribution will feed directly into leadership's <strong>Efficiency Metrics & Automation Leaderboard</strong>.
+                  </small>
+                </div>
+              )}
 
               <div>
                 <label className="form-label">Why are you nominating yourself?</label>

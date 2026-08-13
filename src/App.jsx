@@ -31,6 +31,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<RoleBasedHome />} />
+            <Route path="my-dashboard" element={<UserDashboard />} />
             <Route path="self-nominate" element={<SelfNominate />} />
             <Route path="nominate" element={<NominationForm />} />
             <Route path="leaderboard" element={<LeadershipDashboard />} />

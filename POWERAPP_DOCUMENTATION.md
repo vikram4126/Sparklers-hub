@@ -28,6 +28,7 @@
 19. Power Apps Formulas Reference
 20. SharePoint CRUD & Power Apps Integration Guide
 21. Build Checklist
+22. Step-by-Step Guide: Process Efficiency & Hours Saved Integration in PowerApps
 
 ---
 
@@ -1246,11 +1247,236 @@ Set(
                 )
             )
         )
-    )
-)
+    ```
+
+---
+
+## 22. Step-by-Step Guide: Process Efficiency & Hours Saved Integration in PowerApps
+
+Leadership ka focus efficiency aur time savings par alignment ke liye, PowerApps aur SharePoint mein ye step-by-step changes karein:
+
+### Step 1: SharePoint List Schema Update (`Nominations` List)
+
+1. Open **SharePoint Site** > **Site Contents** > **Nominations List** > **List Settings**.
+2. **Choice Column Update (`Category`)**:
+   - Add new choice option: `"Process & Efficiency"`
+   - Final Choices: `Process & Efficiency`, `Innovation`, `Team Player`, `Extra Mile`, `Customer Success`
+3. **New Column Addition (`HoursSaved`)**:
+   - Column Name: `HoursSaved`
+   - Type: `Number` (Decimal places: 0)
+   - Default value: `0`
+   - Minimum value: `0`
+
+---
+
+### Step 2: Canvas App Form Updates (`SelfNominate` & `NominateTeam` Screens)
+
+1. Set `drpCategory.Items` = 
+   ```powerfx
+   ["Process & Efficiency", "Innovation", "Team Player", "Extra Mile", "Customer Success"]
+   ```
+
+2. Add a new Card / TextInput for Hours Saved (`txtHoursSaved`):
+   - `Format`: `TextFormat.Number`
+   - `HintText`: `"e.g. 15 (Hours saved through automation/process fix)"`
+   - `Visible`: `drpCategory.Selected.Value = "Process & Efficiency"`
+
+3. Update **Submit Button `OnSelect`** Patch formula:
+   ```powerfx
+   Patch(
+       Nominations,
+       Defaults(Nominations),
+       {
+           NomineeName: drpNominee.Selected.Value,
+           Category: { Value: drpCategory.Selected.Value },
+           HoursSaved: Value(txtHoursSaved.Text),
+           Reason: txtReason.Text,
+           Status: If(varUserRole = "PM", "PMApproved", "Pending"),
+           SubmittedDate: Now(),
+           SubmittedBy: varUserRole
+       }
+   );
+   Notify("Nomination submitted successfully!", NotificationType.Success);
+   ```
+
+---
+
+### Step 3: Executive & Leadership Dashboard KPI Formulas
+
+1. **Total Hours Saved KPI Card (`lblTotalHoursSaved.Text`)**:
+   ```powerfx
+   Text(Sum(Filter(Nominations, Status = "Approved"), HoursSaved), "#,##0") & " hrs saved"
+   ```
+
+2. **Process Efficiency Nominations Count (`lblEffCount.Text`)**:
+   ```powerfx
+   Text(
+       CountRows(
+           Filter(Nominations, Status = "Approved" && Category.Value = "Process & Efficiency")
+       )
+   ) & " Efficiency Awards"
+   ```
+
+3. **Segment-Wise Hours Saved (for Manager View)**:
+   ```powerfx
+   Text(
+       Sum(
+           Filter(
+               Nominations,
+               Status = "Approved" && NomineeName in colSegmentTeamMembers
+           ),
+           HoursSaved
+       ),
+       "#,##0"
+   ) & " hrs"
+   ```
+
+---
+
+### Step 4: Efficiency Champions Leaderboard Gallery Setup
+
+To show top employees by total hours saved on the **Winners Board / Executive Screen**:
+
+1. Insert a **Vertical Gallery** (`galEfficiencyChampions`).
+2. Set `Items` property to group by employee name and sum total hours saved:
+   ```powerfx
+   Sort(
+       AddColumns(
+           GroupBy(
+               Filter(Nominations, Status = "Approved", HoursSaved > 0),
+               "NomineeName",
+               "GroupedNominations"
+           ),
+           "TotalHoursSaved",
+           Sum(GroupedNominations, HoursSaved)
+       ),
+       TotalHoursSaved,
+       SortOrder.Descending
+   )
+   ```
+3. Inside Gallery Card Controls:
+   - `lblNomineeName.Text` = `ThisItem.NomineeName`
+   - `lblHoursSavedBadge.Text` = `"⚡ " & Text(ThisItem.TotalHoursSaved) & " hrs saved"`
+   - `lblRankIcon.Text` = 
+     ```powerfx
+     Switch(
+         ThisItem.Index,
+         1, "⚡ Champion",
+         2, "⚙️ Runner-up",
+         "⏱️ Contributor"
+     )
+     ```
+
+---
+
+### Step 5: Automatic Efficiency Keyword Detection & Category Auto-Suggest
+
+User jab nomination reason type kar raha ho, tab auto-select logic chalane ke liye `txtReason.OnChange` / `OnUnfocus` property update karein:
+
+```powerfx
+If(
+    Or(
+        "automat" in Lower(txtReason.Text),
+        "workflow" in Lower(txtReason.Text),
+        "efficiency" in Lower(txtReason.Text),
+        "save hours" in Lower(txtReason.Text),
+        "streamline" in Lower(txtReason.Text)
+    ),
+    UpdateContext({varAutoSuggestedCategory: "Process & Efficiency"});
+    Select(drpCategory, "Process & Efficiency")
+);
 ```
 
 ---
 
-*Feedback & Impact Analyzer Feature Documentation — July 2026*
-*React prototype implemented with real-time keyword analysis card.*
+*Step-by-step Efficiency & Hours Saved Documentation — August 2026*
+*Includes complete PowerFx formulas and SharePoint schema changes.*
+
+---
+
+## 23. Typography & UI Style Guide: Open Sans Font & Line Icons Setup in PowerApps
+
+PowerApps mein professional visual standard and KPMG brand alignment ke liye Open Sans typography aur Line SVG Icons configure karein:
+
+### Step 1: Custom Font Configuration (`App.OnStart`)
+
+1. Open **App** object > **OnStart** property.
+2. Add global font definitions to global theme variable `varTheme`:
+   ```powerfx
+   Set(
+       varTheme,
+       {
+           FontFamilyBody: "Open Sans, sans-serif",
+           FontFamilyHeadline: "Open Sans Condensed, sans-serif",
+           ColorPrimary: ColorValue("#00338D"),    // KPMG Blue
+           ColorSecondary: ColorValue("#7213EA"),  // Royal Purple
+           ColorTeal: ColorValue("#00C0AE"),       // Efficiency Teal
+           ColorAmber: ColorValue("#F59E0B")        // Alert Amber
+       }
+   );
+   ```
+3. Set control properties across screens:
+   - `Header.Font` = `varTheme.FontFamilyHeadline`
+   - `Header.FontWeight` = `FontWeight.Bold`
+   - `BodyText.Font` = `varTheme.FontFamilyBody`
+
+---
+
+### Step 2: Line Vector Icons Replacement (Replacing Emoji Text)
+
+Plain text emojis (⚡, 🎖️, 💬) ki jagah PowerApps vector line icon controls use karein:
+
+| Metric / Section | Old Emoji | PowerApps Control / Icon Property | Color Hex |
+|---|---|---|---|
+| Sparklers Awards | ⚡ / 🏆 | `Icon.Trophy` | `#00338D` |
+| Hours Saved (ROI) | ⚡ / ⏱️ | `Icon.Clock` | `#00C0AE` |
+| External Awards | 🎖️ | `Icon.Medal` | `#7213EA` |
+| Pending Approvals | ⚠️ | `Icon.ShieldAlert` / `Icon.Warning` | `#F59E0B` |
+| Team / Participants | 👥 | `Icon.People` / `Icon.UserCircle` | `#1E49E2` |
+| Client Feedbacks | 💬 | `Icon.Message` / `Icon.Chat` | `#059669` |
+
+**PowerApps Icon Button Setup Example**:
+```powerfx
+// Insert Line Icon control
+Insert > Icons > Trophy
+Icon.Color = varTheme.ColorPrimary
+Icon.Padding = 8
+Icon.DisplayMode = DisplayMode.Edit
+```
+
+---
+
+## 24. Role-Based Navigation: My Personal Dashboard vs Leadership Board
+
+TLs, AMs, Managers, and Directors ke paas do views hote hain:
+1. **Team/Segment Leadership Board (`scrLeadershipBoard`)**: Segment metrics, team breakdown, efficiency ROI.
+2. **My Personal Dashboard (`scrMyDashboard`)**: Personal Badge level, personal awards won, client feedbacks received, self-nominate option.
+
+### Step 1: Sidebar Navigation Control Setup
+
+Sidebar menu gallery item `OnSelect` formula:
+```powerfx
+Switch(
+    ThisItem.ScreenTarget,
+    "MyDashboard", Navigate(scrMyDashboard, ScreenTransition.Fade),
+    "LeadershipBoard", Navigate(scrLeadershipBoard, ScreenTransition.Fade),
+    "SelfNominate", Navigate(scrSelfNominate, ScreenTransition.Fade),
+    "PMApprovals", Navigate(scrPMApprovals, ScreenTransition.Fade),
+    "Feedback", Navigate(scrFeedback, ScreenTransition.Fade),
+    Navigate(scrMyDashboard, ScreenTransition.Fade)
+);
+```
+
+### Step 2: Header User Profile Chip Click Formula
+
+Top header mein user name / profile avatar click karne par unka personal dashboard kholne ke liye `icnUserProfile.OnSelect` property set karein:
+```powerfx
+Navigate(scrMyDashboard, ScreenTransition.Fade);
+Notify("Navigated to My Personal Dashboard", NotificationType.Information);
+```
+
+---
+
+*Updated PowerApps Documentation — August 2026 Edition*
+*All SharePoint List Schemas, PowerFx Formulas, Font Tokens & Navigation Configurations Complete.*
+

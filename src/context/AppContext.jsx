@@ -85,7 +85,7 @@ export const getDepartmentForUser = (userName) => {
 // All reportees list
 export const PM_TEAM = Object.values(PM_TEAM_MAP).flat();
 
-export const CATEGORIES = ['Innovation', 'Team Player', 'Extra Mile', 'Customer Success'];
+export const CATEGORIES = ['Innovation', 'Process & Efficiency', 'Team Player', 'Extra Mile', 'Customer Success'];
 
 export const EXTERNAL_AWARD_TYPES = [
   'Rising Star',
@@ -132,11 +132,12 @@ export const getReporteesForPM = (pmName) => {
 
 
 let _id = 100;
-const mkNom = (name, category, reason, status, dateStr, submittedBy = 'PM') => ({
+const mkNom = (name, category, reason, status, dateStr, submittedBy = 'PM', hoursSaved = 0) => ({
   id: _id++,
   name, category, reason, status,
   date: new Date(dateStr).toISOString(),
-  submittedBy
+  submittedBy,
+  hoursSaved
 });
 
 // Rich 6-month dummy data — every week of every month has winners
@@ -144,71 +145,71 @@ const mkNom = (name, category, reason, status, dateStr, submittedBy = 'PM') => (
 //               Arjun Mehta, Kavitha Nair, Rohit Kumar, Sunita Rao, Deepak Joshi
 const initialNominations = [
   // ── FEBRUARY 2026 ──────────────────────────────
-  mkNom('Priya Sharma',   'Innovation',       'Built an automated report tool',            'Approved', '2026-02-03'),
+  mkNom('Priya Sharma',   'Process & Efficiency', 'Built an automated report tool',            'Approved', '2026-02-03', 'PM', 15),
   mkNom('Rahul Verma',    'Team Player',      'Onboarded 4 new joiners smoothly',          'Approved', '2026-02-04'),
   mkNom('Anjali Singh',   'Extra Mile',       'Delivered the sprint a day early',          'Approved', '2026-02-05'),
   mkNom('Vikram Patel',   'Customer Success', 'Resolved critical client escalation',       'Approved', '2026-02-06'),
 
-  mkNom('Neha Gupta',     'Innovation',       'Introduced new testing framework',          'Approved', '2026-02-10'),
+  mkNom('Neha Gupta',     'Process & Efficiency', 'Introduced new testing framework',          'Approved', '2026-02-10', 'PM', 20),
   mkNom('Arjun Mehta',    'Team Player',      'Organised cross-team knowledge session',    'Approved', '2026-02-11'),
   mkNom('Kavitha Nair',   'Extra Mile',       'Fixed production bug over the weekend',     'Approved', '2026-02-12'),
 
   mkNom('Rohit Kumar',    'Customer Success', 'Client NPS score improved by 15 pts',       'Approved', '2026-02-17'),
-  mkNom('Sunita Rao',     'Innovation',       'Reduced API latency by 40%',                'Approved', '2026-02-18'),
+  mkNom('Sunita Rao',     'Process & Efficiency', 'Reduced API latency by 40%',                'Approved', '2026-02-18', 'PM', 25),
   mkNom('Deepak Joshi',   'Team Player',      'Mentored 2 junior analysts effectively',    'Approved', '2026-02-19'),
   mkNom('Priya Sharma',   'Extra Mile',       'Covered 3 sick colleagues seamlessly',      'Approved', '2026-02-20'),
 
   mkNom('Rahul Verma',    'Customer Success', 'Won a $200k renewal negotiation',           'Approved', '2026-02-24'),
-  mkNom('Anjali Singh',   'Innovation',       'Created a reusable component library',      'Approved', '2026-02-25'),
+  mkNom('Anjali Singh',   'Innovation',       'Created a reusable component library',      'Approved', '2026-02-25', 'PM', 12),
   mkNom('Vikram Patel',   'Team Player',      'Coordinated seamlessly across 3 time zones','Approved', '2026-02-26'),
 
   // ── MARCH 2026 ──────────────────────────────
   mkNom('Neha Gupta',     'Extra Mile',       'Prepared detailed RFP in 24 hours',         'Approved', '2026-03-03'),
   mkNom('Arjun Mehta',    'Customer Success', 'Achieved 100% client satisfaction score',   'Approved', '2026-03-04'),
-  mkNom('Kavitha Nair',   'Innovation',       'Automated weekly reporting saving 4 hrs',   'Approved', '2026-03-05'),
+  mkNom('Kavitha Nair',   'Process & Efficiency', 'Automated weekly reporting saving 16 hrs',  'Approved', '2026-03-05', 'PM', 16),
   mkNom('Rohit Kumar',    'Team Player',      'Led retrospectives that improved velocity', 'Approved', '2026-03-06'),
 
   mkNom('Sunita Rao',     'Extra Mile',       'Volunteered to train new batch',            'Approved', '2026-03-10'),
   mkNom('Deepak Joshi',   'Customer Success', 'Handled 3 critical incidents in 1 week',    'Approved', '2026-03-11'),
-  mkNom('Priya Sharma',   'Innovation',       'Prototyped AI chatbot for helpdesk',        'Approved', '2026-03-12'),
+  mkNom('Priya Sharma',   'Process & Efficiency', 'Prototyped AI chatbot for helpdesk',        'Approved', '2026-03-12', 'PM', 30),
 
   mkNom('Rahul Verma',    'Team Player',      'Pair-programmed with struggling colleague', 'Approved', '2026-03-17'),
   mkNom('Anjali Singh',   'Extra Mile',       'Completed certification ahead of deadline', 'Approved', '2026-03-18'),
   mkNom('Vikram Patel',   'Customer Success', 'Turned a detractor client into promoter',   'Approved', '2026-03-19'),
-  mkNom('Neha Gupta',     'Innovation',       'Pioneered new data pipeline architecture',  'Approved', '2026-03-20'),
+  mkNom('Neha Gupta',     'Process & Efficiency', 'Pioneered new data pipeline architecture',  'Approved', '2026-03-20', 'PM', 35),
 
   mkNom('Arjun Mehta',    'Team Player',      'Ran an impactful team-building session',    'Approved', '2026-03-24'),
   mkNom('Kavitha Nair',   'Extra Mile',       'Delivered 2 features in the same sprint',   'Approved', '2026-03-25'),
   mkNom('Rohit Kumar',    'Customer Success', 'Saved a churning enterprise account',        'Approved', '2026-03-26'),
 
   // ── APRIL 2026 ──────────────────────────────
-  mkNom('Sunita Rao',     'Innovation',       'Proposed process saving 6 hrs/week',        'Approved', '2026-04-01'),
+  mkNom('Sunita Rao',     'Process & Efficiency', 'Proposed process saving 24 hrs/month',       'Approved', '2026-04-01', 'PM', 24),
   mkNom('Deepak Joshi',   'Team Player',      'Documented entire codebase for the team',   'Approved', '2026-04-02'),
   mkNom('Priya Sharma',   'Extra Mile',       'Conducted 5 training sessions in a week',   'Approved', '2026-04-03'),
   mkNom('Rahul Verma',    'Customer Success', 'Maintained 100% SLA for entire month',      'Approved', '2026-04-04'),
 
-  mkNom('Anjali Singh',   'Innovation',       'Reduced CI/CD build time by 50%',           'Approved', '2026-04-08'),
+  mkNom('Anjali Singh',   'Process & Efficiency', 'Reduced CI/CD build time by 50%',           'Approved', '2026-04-08', 'PM', 18),
   mkNom('Vikram Patel',   'Team Player',      'Mediated a cross-team conflict effectively', 'Approved', '2026-04-09'),
   mkNom('Neha Gupta',     'Extra Mile',       'Delivered hotfix at midnight on a Friday',  'Approved', '2026-04-10'),
 
   mkNom('Arjun Mehta',    'Customer Success', 'Upsold additional module to key account',   'Approved', '2026-04-14'),
-  mkNom('Kavitha Nair',   'Innovation',       'Introduced automated QA testing',           'Approved', '2026-04-15'),
+  mkNom('Kavitha Nair',   'Process & Efficiency', 'Introduced automated QA testing',           'Approved', '2026-04-15', 'PM', 22),
   mkNom('Rohit Kumar',    'Team Player',      'Shared best practices across all squads',   'Approved', '2026-04-16'),
   mkNom('Sunita Rao',     'Extra Mile',       'Stayed late 3 days to unblock release',     'Approved', '2026-04-17'),
 
   mkNom('Deepak Joshi',   'Customer Success', 'Client requested to extend contract early', 'Approved', '2026-04-22'),
-  mkNom('Priya Sharma',   'Innovation',       'Built a live dashboard for leadership',     'Approved', '2026-04-23'),
+  mkNom('Priya Sharma',   'Process & Efficiency', 'Built a live dashboard for leadership',     'Approved', '2026-04-23', 'PM', 14),
   mkNom('Rahul Verma',    'Team Player',      'Wrote onboarding guides used by 10 people', 'Approved', '2026-04-24'),
 
   // ── MAY 2026 ──────────────────────────────
   mkNom('Anjali Singh',   'Extra Mile',       'Submitted detailed post-mortem analysis',   'Approved', '2026-05-05'),
   mkNom('Vikram Patel',   'Customer Success', 'Achieved highest CSAT in the team',         'Approved', '2026-05-06'),
-  mkNom('Neha Gupta',     'Innovation',       'Implemented feature flag system',           'Approved', '2026-05-07'),
+  mkNom('Neha Gupta',     'Process & Efficiency', 'Implemented feature flag system',           'Approved', '2026-05-07', 'PM', 10),
   mkNom('Arjun Mehta',    'Team Player',      'Arranged fortnightly sprint demos',         'Approved', '2026-05-08'),
 
   mkNom('Kavitha Nair',   'Extra Mile',       'Helped 3 teammates meet sprint goal',       'Approved', '2026-05-12'),
   mkNom('Rohit Kumar',    'Customer Success', 'Resolved 50 support tickets in 5 days',     'Approved', '2026-05-13'),
-  mkNom('Sunita Rao',     'Innovation',       'Created self-service analytics portal',     'Approved', '2026-05-14'),
+  mkNom('Sunita Rao',     'Process & Efficiency', 'Created self-service analytics portal',     'Approved', '2026-05-14', 'PM', 28),
 
   mkNom('Deepak Joshi',   'Team Player',      'Co-led hiring panel for 3 open roles',      'Approved', '2026-05-19'),
   mkNom('Priya Sharma',   'Extra Mile',       'Took over a colleagues tasks during leave', 'Approved', '2026-05-20'),
@@ -220,36 +221,36 @@ const initialNominations = [
   mkNom('Arjun Mehta',    'Customer Success', 'On-boarded the largest client of the year', 'Approved', '2026-05-28'),
 
   // ── JUNE 2026 ──────────────────────────────
-  mkNom('Kavitha Nair',   'Innovation',       'Redesigned data ingestion pipeline',        'Approved', '2026-06-02'),
+  mkNom('Kavitha Nair',   'Process & Efficiency', 'Redesigned data ingestion pipeline',        'Approved', '2026-06-02', 'PM', 40),
   mkNom('Rohit Kumar',    'Team Player',      'Mentored intern cohort for 4 weeks',        'Approved', '2026-06-03'),
   mkNom('Sunita Rao',     'Extra Mile',       'Coordinated go-live across 5 time zones',   'Approved', '2026-06-04'),
   mkNom('Deepak Joshi',   'Customer Success', 'Recovered churn risk worth ₹40L',           'Approved', '2026-06-05'),
 
-  mkNom('Priya Sharma',   'Innovation',       'ML model improved forecast accuracy 20%',   'Approved', '2026-06-09'),
+  mkNom('Priya Sharma',   'Process & Efficiency', 'ML model improved forecast accuracy 20%',   'Approved', '2026-06-09', 'PM', 30),
   mkNom('Rahul Verma',    'Team Player',      'Drove sprint retrospectives consistently',  'Approved', '2026-06-10'),
   mkNom('Anjali Singh',   'Extra Mile',       'Wrote detailed runbooks for production',    'Approved', '2026-06-11'),
 
   mkNom('Vikram Patel',   'Customer Success', 'Exceeded quarterly OKR by 15%',             'Approved', '2026-06-16'),
-  mkNom('Neha Gupta',     'Innovation',       'Created no-code admin panel for ops',       'Approved', '2026-06-17'),
+  mkNom('Neha Gupta',     'Process & Efficiency', 'Created no-code admin panel for ops',       'Approved', '2026-06-17', 'PM', 25),
   mkNom('Arjun Mehta',    'Team Player',      'Launched internal wiki used by 40 people',  'Approved', '2026-06-18'),
   mkNom('Kavitha Nair',   'Extra Mile',       'Resolved 3 P1 issues in same day',          'Approved', '2026-06-19'),
 
   mkNom('Rohit Kumar',    'Customer Success', 'Signed multi-year contract with client',    'Approved', '2026-06-23'),
-  mkNom('Sunita Rao',     'Innovation',       'Piloted RPA for repetitive admin work',     'Approved', '2026-06-24'),
+  mkNom('Sunita Rao',     'Process & Efficiency', 'Piloted RPA for repetitive admin work',     'Approved', '2026-06-24', 'PM', 50),
   mkNom('Deepak Joshi',   'Team Player',      'Coordinated cross-functional product review','Approved', '2026-06-25'),
 
   // ── JULY 2026 ──────────────────────────────
-  mkNom('Priya Sharma',   'Innovation',       'Automated nomination email workflow',        'Approved', '2026-07-01'),
+  mkNom('Priya Sharma',   'Process & Efficiency', 'Automated nomination email workflow',        'Approved', '2026-07-01', 'PM', 15),
   mkNom('Rahul Verma',    'Customer Success', 'Achieved highest CSAT of Q3 in July W1',    'Approved', '2026-07-02'),
   mkNom('Anjali Singh',   'Team Player',      'Led stand-up coverage during PM leave',     'Approved', '2026-07-03'),
   mkNom('Vikram Patel',   'Extra Mile',       'Delivered emergency patch for client',      'Approved', '2026-07-04'),
 
-  mkNom('Neha Gupta',     'Innovation',       'Integrated Power Automate with SharePoint', 'Approved', '2026-07-08'),
+  mkNom('Neha Gupta',     'Process & Efficiency', 'Integrated Power Automate with SharePoint', 'Approved', '2026-07-08', 'PM', 20),
   mkNom('Arjun Mehta',    'Extra Mile',       'Reviewed 20 PRs in a single week',          'Approved', '2026-07-09'),
   mkNom('Kavitha Nair',   'Team Player',      'Unified design system across 3 teams',      'Approved', '2026-07-10'),
 
   mkNom('Rohit Kumar',    'Customer Success', 'Retained key client after competitor pitch','Approved', '2026-07-15'),
-  mkNom('Sunita Rao',     'Innovation',       'Piloted AI summarisation tool for reports', 'Approved', '2026-07-16'),
+  mkNom('Sunita Rao',     'Process & Efficiency', 'Piloted AI summarisation tool for reports', 'Approved', '2026-07-16', 'PM', 18),
   mkNom('Priya Sharma',   'Extra Mile',       'Self-nominated for going above and beyond', 'Pending',  '2026-07-17', 'self'),
   mkNom('Deepak Joshi',   'Team Player',      'Coordinated town hall logistics flawlessly','PMApproved','2026-07-18'),
 ];
@@ -300,18 +301,26 @@ const mappedInitialNominations = [
 
 export const AppProvider = ({ children }) => {
   const [nominations, setNominations] = useState(() => {
-    const saved = localStorage.getItem('sparklers_nominations_v8');
-    return saved ? JSON.parse(saved) : mappedInitialNominations;
+    const saved = localStorage.getItem('sparklers_nominations_v9');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure hoursSaved exists from initial data mapping
+      return parsed.map(p => {
+        const initial = mappedInitialNominations.find(m => m.id === p.id);
+        return {
+          ...p,
+          hoursSaved: p.hoursSaved !== undefined ? p.hoursSaved : (initial ? initial.hoursSaved : 0)
+        };
+      });
+    }
+    return mappedInitialNominations;
   });
 
   const [currentRole, setCurrentRole] = useState('User');
   const [currentUser, setCurrentUser] = useState(ROLE_USERS['User']);
 
-
-
-
   useEffect(() => {
-    localStorage.setItem('sparklers_nominations_v8', JSON.stringify(nominations));
+    localStorage.setItem('sparklers_nominations_v9', JSON.stringify(nominations));
   }, [nominations]);
 
   // ── External Awards (My Achievement Locker) ────────────────────
@@ -481,6 +490,32 @@ export const AppProvider = ({ children }) => {
     return nom.reason;
   };
 
+  const getTotalHoursSaved = () => {
+    return nominations
+      .filter(n => n.status === 'Approved')
+      .reduce((sum, n) => sum + (Number(n.hoursSaved) || 0), 0);
+  };
+
+  const getEfficiencyStats = () => {
+    const approved = nominations.filter(n => n.status === 'Approved');
+    const totalHours = approved.reduce((sum, n) => sum + (Number(n.hoursSaved) || 0), 0);
+    const effCount = approved.filter(n => getEffectiveCategory(n) === 'Process & Efficiency' || (n.hoursSaved && n.hoursSaved > 0)).length;
+    
+    // User hours map for leaderboard
+    const userHoursMap = {};
+    approved.forEach(n => {
+      if (n.hoursSaved && Number(n.hoursSaved) > 0) {
+        userHoursMap[n.name] = (userHoursMap[n.name] || 0) + Number(n.hoursSaved);
+      }
+    });
+
+    const topContributors = Object.entries(userHoursMap)
+      .map(([name, hours]) => ({ name, hours }))
+      .sort((a, b) => b.hours - a.hours);
+
+    return { totalHours, effCount, topContributors };
+  };
+
   return (
     <AppContext.Provider value={{
       nominations,
@@ -498,6 +533,8 @@ export const AppProvider = ({ children }) => {
       getDepartmentForUser,
       getEffectiveCategory,
       getEffectiveReason,
+      getTotalHoursSaved,
+      getEfficiencyStats,
       // External Awards
       externalAwards,
       addExternalAward,

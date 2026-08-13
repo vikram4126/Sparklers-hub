@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Medal, Trophy, Plus, Award } from 'lucide-react';
+import { Medal, Trophy, Plus, Award, Zap, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip as RechartsTooltip } from 'recharts';
 
@@ -435,7 +435,7 @@ const UserDashboard = () => {
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '1rem' }}>
                 {Object.entries(userStats.categories).map(([cat, count]) => (
-                  <span key={cat} className="badge badge-category" style={{ fontSize: '0.85rem' }}>
+                  <span key={cat} className="badge badge-category" style={cat === 'Process & Efficiency' ? { backgroundColor: 'rgba(0,192,174,0.15)', color: '#00c0ae', borderColor: 'rgba(0,192,174,0.4)', fontSize: '0.85rem' } : { fontSize: '0.85rem' }}>
                     {cat} ×{count}
                   </span>
                 ))}
@@ -453,9 +453,9 @@ const UserDashboard = () => {
                 return (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem', width: '100%', marginTop: '1.25rem' }}>
                     {[
-                      { emoji: '⚡', value: userStats.total, label: 'Sparklers', sub: 'Awards', tab: 'sparklers', color: '#00338d' },
-                      { emoji: '🎖️', value: totalOther,     label: 'Other',     sub: 'Awards',   tab: 'other',     color: '#7c3aed' },
-                      { emoji: '💬', value: myFbs.length,   label: 'Client',    sub: avgImpact ? `Avg ${avgImpact}/10` : 'Feedbacks', tab: 'feedbacks', color: '#059669' },
+                      { icon: <Zap size={16} />, value: userStats.total, label: 'Sparklers', sub: 'Awards', tab: 'sparklers', color: '#00338d' },
+                      { icon: <Award size={16} />, value: totalOther,     label: 'Other',     sub: 'Awards',   tab: 'other',     color: '#7c3aed' },
+                      { icon: <MessageSquare size={16} />, value: myFbs.length,   label: 'Client',    sub: avgImpact ? `Avg ${avgImpact}/10` : 'Feedbacks', tab: 'feedbacks', color: '#059669' },
                     ].map(stat => (
                       <button key={stat.tab} onClick={() => { setPortfolioTab(stat.tab); document.getElementById('my-portfolio')?.scrollIntoView({ behavior: 'smooth' }); }} style={{
                         border: `1.5px solid ${stat.color}22`,
@@ -463,14 +463,20 @@ const UserDashboard = () => {
                         padding: '0.7rem 0.5rem',
                         background: `${stat.color}0a`,
                         cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
                         transition: 'all 0.18s ease',
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = `${stat.color}18`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = `${stat.color}0a`; e.currentTarget.style.transform = 'translateY(0)'; }}
                       >
-                        <span style={{ fontSize: '1rem' }}>{stat.emoji}</span>
-                        <span style={{ fontSize: '1.5rem', fontWeight: '800', color: stat.color, lineHeight: 1.1 }}>{stat.value}</span>
+                        <div style={{
+                          width: '32px', height: '32px', borderRadius: '50%',
+                          background: `${stat.color}15`, color: stat.color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {stat.icon}
+                        </div>
+                        <span style={{ fontSize: '1.4rem', fontWeight: '800', color: stat.color, lineHeight: 1.1 }}>{stat.value}</span>
                         <span style={{ fontSize: '0.65rem', fontWeight: '700', color: stat.color, textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>{stat.label}</span>
                         <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{stat.sub}</span>
                       </button>
@@ -543,9 +549,9 @@ const UserDashboard = () => {
             const filteredFeedbacks = feedbackCategory === 'All Categories' ? myFeedbacks.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)) : myFeedbacks.filter(f => f.category === feedbackCategory).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
 
             const TABS = [
-              { id: 'sparklers', label: '⚡ Sparklers Awards', count: filteredAwards.length },
-              { id: 'other',     label: '🎖️ Other Awards',    count: myExternal.length, badge: pendingExt.length > 0 ? pendingExt.length : null },
-              { id: 'feedbacks', label: '💬 Client Feedbacks', count: myFeedbacks.length },
+              { id: 'sparklers', label: 'Sparklers Awards', icon: <Zap size={16} />, count: filteredAwards.length },
+              { id: 'other',     label: 'Other Awards',    icon: <Award size={16} />, count: myExternal.length, badge: pendingExt.length > 0 ? pendingExt.length : null },
+              { id: 'feedbacks', label: 'Client Feedbacks', icon: <MessageSquare size={16} />, count: myFeedbacks.length },
             ];
 
             const avgImpact = myFeedbacks.length > 0
@@ -603,9 +609,10 @@ const UserDashboard = () => {
                       padding: '0.6rem 1.3rem', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem',
                       background: 'none', borderBottom: portfolioTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent',
                       color: portfolioTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
-                      marginBottom: '-2px', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                      marginBottom: '-2px', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '0.45rem'
                     }}>
-                      {tab.label}
+                      {tab.icon}
+                      <span>{tab.label}</span>
                       {tab.badge && (
                         <span style={{ background: '#f59e0b', color: 'white', borderRadius: '999px', padding: '0.05rem 0.45rem', fontSize: '0.68rem', fontWeight: '700' }}>
                           {tab.badge}
@@ -645,7 +652,16 @@ const UserDashboard = () => {
                             <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                               {award.date ? new Date(award.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                             </td>
-                            <td><span className="badge badge-category">{getEffectiveCategory(award)}</span></td>
+                             <td>
+                               <span className="badge badge-category" style={getEffectiveCategory(award) === 'Process & Efficiency' ? { backgroundColor: 'rgba(0,192,174,0.15)', color: '#00c0ae', borderColor: 'rgba(0,192,174,0.4)' } : {}}>
+                                 {getEffectiveCategory(award)}
+                               </span>
+                               {award.hoursSaved > 0 && (
+                                 <span style={{ display: 'inline-block', marginLeft: '0.4rem', fontSize: '0.75rem', color: '#00c0ae', fontWeight: '700' }}>
+                                   ⏱️ {award.hoursSaved}h saved
+                                 </span>
+                               )}
+                             </td>
                             <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '400px' }}>{getEffectiveReason(award)}</td>
                           </tr>
                         ))}
@@ -657,7 +673,9 @@ const UserDashboard = () => {
                 {/* ── TAB: Other Awards ── */}
                 {portfolioTab === 'other' && (myExternal.length === 0 ? (
                   <div className="glass-panel" style={{ textAlign: 'center', padding: '2.5rem' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🎖️</div>
+                    <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', marginBottom: '0.75rem' }}>
+                      <Award size={36} />
+                    </div>
                     <p style={{ fontWeight: '600', marginBottom: '0.4rem' }}>No external awards logged yet</p>
                     <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
                       Received a Rising Star, Kudos, or any award on another platform?<br />Add it here to build your full achievement portfolio.
@@ -708,13 +726,15 @@ const UserDashboard = () => {
                 {/* ── TAB: Client Feedbacks ── */}
                 {portfolioTab === 'feedbacks' && (myFeedbacks.length === 0 ? (
                   <div className="glass-panel" style={{ textAlign: 'center', padding: '2.5rem' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💬</div>
+                    <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', background: 'rgba(5,150,105,0.1)', color: '#059669', marginBottom: '0.75rem' }}>
+                      <MessageSquare size={36} />
+                    </div>
                     <p style={{ fontWeight: '600', marginBottom: '0.4rem' }}>No client feedbacks logged yet</p>
                     <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
                       Received appreciation from a client via Outlook or email?<br />Log it here to build your impact portfolio.
                     </p>
                     <button className="btn btn-primary" onClick={() => navigate('/feedback')}>
-                      💬 Log Your First Feedback
+                      <MessageSquare size={16} /> Log Your First Feedback
                     </button>
                   </div>
                 ) : (

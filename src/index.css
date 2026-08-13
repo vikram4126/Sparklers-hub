@@ -1,4 +1,6 @@
-/* ── Open Sans Local Fonts ─────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Open+Sans+Condensed:wght@300;400;600;700;800&display=swap');
+
+/* ── Open Sans Local & Web Fonts ─────────────────────────────── */
 @font-face {
   font-family: 'Open Sans';
   src: url('/Open_Sans 2/OpenSans-Regular.ttf') format('truetype');

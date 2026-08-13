@@ -33,13 +33,11 @@ const Layout = () => {
         </div>
 
         <div className="sidebar-nav">
-          {/* My Dashboard — for User and Admin */}
-          {['User', 'Admin'].includes(currentRole) && (
-            <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
-              <Home size={20} />
-              My Dashboard
-            </NavLink>
-          )}
+          {/* My Dashboard — Available for ALL roles to view their personal badge, awards & feedbacks */}
+          <NavLink to="/my-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <UserCircle size={20} />
+            My Dashboard
+          </NavLink>
 
           {/* Leadership Board — for PM (TLs/AMs), Managers (Leadership) and Directors */}
           {['PM', 'Leadership', 'Director'].includes(currentRole) && (
@@ -185,9 +183,15 @@ const Layout = () => {
 
             <div style={{ width: '1px', height: '30px', background: 'var(--border)' }}></div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div 
+              onClick={() => navigate('/my-dashboard')} 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', padding: '0.35rem 0.65rem', borderRadius: '8px', transition: 'background 0.2s' }}
+              title="Click to view My Personal Dashboard & Badge"
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
               <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{currentUser}</div>
-              <UserCircle size={36} color="var(--primary)" />
+              <UserCircle size={32} color="var(--primary)" />
             </div>
           </div>
         </header>

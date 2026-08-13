@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Trophy, Globe, Users, TrendingUp, Medal } from 'lucide-react';
+import { Trophy, Globe, Users, TrendingUp, Medal, Zap, Clock } from 'lucide-react';
 
-const COLORS = ['#00338d', '#1e49e2', '#7213ea', '#fd349c', '#00c0ae'];
+const COLORS = ['#00338d', '#00c0ae', '#1e49e2', '#7213ea', '#fd349c'];
 
 const ExecutiveDashboard = () => {
-  const { nominations, currentUser, getReporteesForPM, getEffectiveCategory, externalAwards } = useAppContext();
+  const { nominations, currentUser, getReporteesForPM, getEffectiveCategory, externalAwards, getEfficiencyStats } = useAppContext();
 
   // Helper to get all nested reportees recursively
   const getHierarchyReportees = (leaderName) => {
@@ -18,6 +18,8 @@ const ExecutiveDashboard = () => {
     });
     return Array.from(new Set(reportees));
   };
+
+  const effStats = getEfficiencyStats();
 
   const executiveStats = useMemo(() => {
     const approved = nominations.filter(n => n.status === 'Approved');
@@ -79,51 +81,161 @@ const ExecutiveDashboard = () => {
   return (
     <div className="animate-fade-in">
       <h1 style={{ marginBottom: '0.25rem' }}>Welcome, {currentUser}!</h1>
-      <p className="text-muted" style={{ marginBottom: '2rem' }}>Here is the global organization performance, vertical comparisons, and top talent recognition.</p>
+      <p className="text-muted" style={{ marginBottom: '2rem' }}>Global organization performance, efficiency ROI metrics, vertical comparisons, and top talent recognition.</p>
 
       {/* Global Summary Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(0, 51, 141, 0.1)', padding: '1rem', borderRadius: '12px', color: 'var(--primary)' }}>
-            <Globe size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{executiveStats.totalApproved}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Global Sparklers Awards</div>
-          </div>
-        </div>
-
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(114, 19, 234, 0.1)', padding: '1rem', borderRadius: '12px', color: 'var(--secondary)' }}>
-            <Medal size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{executiveStats.totalExtApproved}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Other Platform Awards</div>
-          </div>
-        </div>
-
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(0, 192, 174, 0.1)', padding: '1rem', borderRadius: '12px', color: '#00c0ae' }}>
-            <Users size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{executiveStats.uniqueWinners}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Unique Participants</div>
-          </div>
-        </div>
-
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '12px', color: '#f59e0b' }}>
-            <Trophy size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#f59e0b', lineHeight: 1.2 }}>
-              {executiveStats.solScore > executiveStats.ashokScore ? 'Digital Segment' : (executiveStats.ashokScore > executiveStats.solScore ? 'Design & Sales' : 'Tied')}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '2.25rem' }}>
+        
+        {/* Card 1: Global Sparklers */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(0, 51, 141, 0.15)',
+          borderTop: '4px solid var(--primary)',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(0, 51, 141, 0.1)', color: 'var(--primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Globe size={20} />
             </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Leading Vertical</div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 51, 141, 0.08)', color: 'var(--primary)' }}>
+              Global
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: 'var(--primary)', lineHeight: 1.1 }}>
+            {executiveStats.totalApproved}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Global Sparklers
           </div>
         </div>
+
+        {/* Card 2: Total Hours Saved */}
+        <div style={{
+          background: 'linear-gradient(145deg, rgba(0, 192, 174, 0.06), #ffffff)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(0, 192, 174, 0.3)',
+          borderTop: '4px solid #00c0ae',
+          boxShadow: '0 4px 15px -3px rgba(0, 192, 174, 0.08)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(0, 192, 174, 0.15)', color: '#00c0ae',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Clock size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae' }}>
+              Efficiency ROI
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: '#00c0ae', lineHeight: 1.1 }}>
+            {effStats.totalHours} hrs
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Total Hours Saved
+          </div>
+        </div>
+
+        {/* Card 3: External Awards */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(114, 19, 234, 0.15)',
+          borderTop: '4px solid var(--secondary)',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(114, 19, 234, 0.1)', color: 'var(--secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Medal size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(114, 19, 234, 0.08)', color: 'var(--secondary)' }}>
+              External
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: 'var(--secondary)', lineHeight: 1.1 }}>
+            {executiveStats.totalExtApproved}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            External Awards
+          </div>
+        </div>
+
+        {/* Card 4: Unique Participants */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(0, 192, 174, 0.15)',
+          borderTop: '4px solid #00c0ae',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(0, 192, 174, 0.1)', color: '#00c0ae',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Users size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.08)', color: '#00c0ae' }}>
+              People
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: 'var(--primary)', lineHeight: 1.1 }}>
+            {executiveStats.uniqueWinners}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Unique Participants
+          </div>
+        </div>
+
+        {/* Card 5: Leading Vertical */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(245, 158, 11, 0.2)',
+          borderTop: '4px solid #f59e0b',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Trophy size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}>
+              #1 Segment
+            </span>
+          </div>
+          <div style={{ fontSize: '1.35rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: '#f59e0b', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {executiveStats.solScore > executiveStats.ashokScore ? 'Digital Segment' : (executiveStats.ashokScore > executiveStats.solScore ? 'Design & Sales' : 'Tied')}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Leading Vertical
+          </div>
+        </div>
+
       </div>
 
       {/* Middle Row: Vertical Face-off & Wall of Fame */}
@@ -182,7 +294,7 @@ const ExecutiveDashboard = () => {
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <Trophy size={20} color="#f59e0b" />
-            <h3 style={{ margin: 0 }}>Wall of Fame (Top 5)</h3>
+            <h3 style={{ margin: 0 }}>Wall of Fame (Top Winners)</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {executiveStats.topStars.map(([name, score], idx) => (
@@ -192,6 +304,25 @@ const ExecutiveDashboard = () => {
                 </span>
                 <span style={{ fontWeight: '600', fontSize: '1rem', flex: 1 }}>{name}</span>
                 <span style={{ fontWeight: '700', color: 'var(--primary)', fontSize: '0.95rem' }}>{score} awards</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Efficiency & Automation Champions */}
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', border: '1px solid rgba(0, 192, 174, 0.3)', background: 'linear-gradient(135deg, rgba(0,192,174,0.03), transparent)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <Zap size={20} color="#00c0ae" />
+            <h3 style={{ margin: 0 }}>⚡ Efficiency Champions (Hours Saved)</h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {effStats.topContributors.slice(0, 5).map((item, idx) => (
+              <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0', borderBottom: idx < 4 ? '1px solid var(--border)' : 'none' }}>
+                <span style={{ fontSize: '1.1rem', width: '28px', textAlign: 'center' }}>
+                  {idx === 0 ? '⚡' : idx === 1 ? '⚙️' : '⏱️'}
+                </span>
+                <span style={{ fontWeight: '600', fontSize: '1rem', flex: 1 }}>{item.name}</span>
+                <span style={{ fontWeight: '800', color: '#00c0ae', fontSize: '0.95rem' }}>{item.hours} hrs saved</span>
               </div>
             ))}
           </div>

@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Trophy, Users, ShieldAlert, Medal } from 'lucide-react';
+import { Trophy, Users, ShieldAlert, Medal, Clock, Zap, UserCircle } from 'lucide-react';
 
-const COLORS = ['#00338d', '#1e49e2', '#7213ea', '#fd349c', '#00c0ae'];
+const COLORS = ['#00338d', '#00c0ae', '#1e49e2', '#7213ea', '#fd349c'];
 
 const LeadershipView = () => {
   const { nominations, currentUser, getReporteesForPM, getEffectiveCategory, externalAwards } = useAppContext();
+  const navigate = useNavigate();
 
   // Helper to get all nested reportees recursively
   const getHierarchyReportees = (leaderName) => {
@@ -23,6 +25,10 @@ const LeadershipView = () => {
     const everyone = getHierarchyReportees(currentUser);
     const approved = nominations.filter(n => n.status === 'Approved' && everyone.includes(n.name));
     const pending = nominations.filter(n => n.status === 'Pending' && everyone.includes(n.name));
+    const segmentHoursSaved = approved.reduce((sum, n) => {
+      const h = Number(n.hoursSaved) || (getEffectiveCategory(n) === 'Process & Efficiency' ? 15 : 0);
+      return sum + h;
+    }, 0);
 
     // Category distribution
     const catMap = {};
@@ -63,6 +69,7 @@ const LeadershipView = () => {
       total: approved.length, 
       pending: pending.length, 
       extTotal: extApproved.length,
+      segmentHoursSaved,
       categoryData, 
       monthlyData, 
       reporteeScores, 
@@ -72,54 +79,175 @@ const LeadershipView = () => {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ marginBottom: '0.25rem' }}>Welcome, {currentUser}!</h1>
-      <p className="text-muted" style={{ marginBottom: '2rem' }}>Here is your segment performance, team breakdown, and high-level analytics.</p>
-
-      {/* Stats Summary Row (3 Columns Grid: 3 Stats Cards) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        {/* Total Segment Awards */}
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(0, 51, 141, 0.1)', padding: '1rem', borderRadius: '12px', color: 'var(--primary)' }}>
-            <Trophy size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{managerStats.total}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Sparklers Awards</div>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ margin: '0 0 0.25rem 0' }}>Welcome, {currentUser}!</h1>
+          <p className="text-muted" style={{ margin: 0 }}>Here is your segment performance, team breakdown, and high-level analytics.</p>
         </div>
+        <button 
+          className="btn btn-secondary" 
+          onClick={() => navigate('/my-dashboard')}
+          style={{ fontSize: '0.85rem', gap: '0.45rem', padding: '0.5rem 1rem', borderRadius: '10px' }}
+        >
+          <UserCircle size={18} color="var(--primary)" /> View My Personal Badge & Portfolio
+        </button>
+      </div>
 
-        {/* Total Segment External Awards */}
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(114, 19, 234, 0.1)', padding: '1rem', borderRadius: '12px', color: 'var(--secondary)' }}>
-            <Medal size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{managerStats.extTotal}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Other Platform Awards</div>
-          </div>
-        </div>
-
-        {/* Pending Approvals */}
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '12px', color: managerStats.pending > 0 ? 'var(--accent)' : 'var(--success)' }}>
-            <ShieldAlert size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: managerStats.pending > 0 ? 'var(--accent)' : 'var(--success)', lineHeight: 1 }}>{managerStats.pending}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Pending Team Approvals</div>
-          </div>
-        </div>
-
-        {/* Top Performer */}
-        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
-          <div style={{ background: 'rgba(0, 192, 174, 0.1)', padding: '1rem', borderRadius: '12px', color: '#00c0ae' }}>
-            <Users size={24} />
-          </div>
-          <div>
-            <div style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1.2 }}>
-              {managerStats.topPerformer ? `${managerStats.topPerformer[0]} (${managerStats.topPerformer[1]} wins)` : '—'}
+      {/* Stats Summary Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '2.25rem' }}>
+        
+        {/* Card 1: Sparklers Awards */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(0, 51, 141, 0.15)',
+          borderTop: '4px solid var(--primary)',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(0, 51, 141, 0.1)', color: 'var(--primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Trophy size={20} />
             </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>Top Reporting Team</div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 51, 141, 0.08)', color: 'var(--primary)' }}>
+              Active
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: 'var(--primary)', lineHeight: 1.1 }}>
+            {managerStats.total}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Sparklers Awards
+          </div>
+        </div>
+
+        {/* Card 2: Segment Hours Saved */}
+        <div style={{
+          background: 'linear-gradient(145deg, rgba(0, 192, 174, 0.06), #ffffff)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(0, 192, 174, 0.3)',
+          borderTop: '4px solid #00c0ae',
+          boxShadow: '0 4px 15px -3px rgba(0, 192, 174, 0.08)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(0, 192, 174, 0.15)', color: '#00c0ae',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Clock size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae' }}>
+              Efficiency ROI
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: '#00c0ae', lineHeight: 1.1 }}>
+            {managerStats.segmentHoursSaved} hrs
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Segment Hours Saved
+          </div>
+        </div>
+
+        {/* Card 3: External Awards */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(114, 19, 234, 0.15)',
+          borderTop: '4px solid var(--secondary)',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(114, 19, 234, 0.1)', color: 'var(--secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Medal size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(114, 19, 234, 0.08)', color: 'var(--secondary)' }}>
+              External
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: 'var(--secondary)', lineHeight: 1.1 }}>
+            {managerStats.extTotal}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            External Awards
+          </div>
+        </div>
+
+        {/* Card 4: Pending Approvals */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: `1px solid ${managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+          borderTop: `4px solid ${managerStats.pending > 0 ? '#f59e0b' : '#22c55e'}`,
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.12)',
+              color: managerStats.pending > 0 ? '#f59e0b' : '#22c55e',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <ShieldAlert size={20} />
+            </div>
+            <span style={{
+              fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px',
+              background: managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+              color: managerStats.pending > 0 ? '#d97706' : '#16a34a'
+            }}>
+              {managerStats.pending > 0 ? 'Action Needed' : 'All Clear'}
+            </span>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: managerStats.pending > 0 ? '#d97706' : '#16a34a', lineHeight: 1.1 }}>
+            {managerStats.pending}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            Pending Approvals
+          </div>
+        </div>
+
+        {/* Card 5: Top Reporting Team */}
+        <div style={{
+          background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+          borderRadius: '16px', padding: '1.25rem 1.1rem',
+          border: '1px solid rgba(30, 73, 226, 0.15)',
+          borderTop: '4px solid #1e49e2',
+          boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.04)',
+          position: 'relative', overflow: 'hidden',
+          transition: 'all 0.25s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'rgba(30, 73, 226, 0.1)', color: '#1e49e2',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Users size={20} />
+            </div>
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(30, 73, 226, 0.08)', color: '#1e49e2' }}>
+              #1 Team
+            </span>
+          </div>
+          <div style={{ fontSize: '1.35rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: '#1e49e2', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {managerStats.topPerformer ? `${managerStats.topPerformer[0]}` : '—'}
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
+            {managerStats.topPerformer ? `${managerStats.topPerformer[1]} Wins · Top Team` : 'Top Reporting Team'}
           </div>
         </div>
       </div>

@@ -315,7 +315,16 @@ const LeadershipDashboard = () => {
                       return (
                         <tr key={nom.id}>
                           <td style={{ fontWeight: 600 }}>{nom.name}</td>
-                          <td><span className="badge badge-category">{nom.category}</span></td>
+                          <td>
+                            <span className="badge badge-category" style={nom.category === 'Process & Efficiency' ? { backgroundColor: 'rgba(0,192,174,0.15)', color: '#00c0ae', borderColor: 'rgba(0,192,174,0.4)' } : {}}>
+                              {nom.category}
+                            </span>
+                            {nom.hoursSaved > 0 && (
+                              <span style={{ display: 'inline-block', marginLeft: '0.4rem', fontSize: '0.75rem', color: '#00c0ae', fontWeight: '700' }}>
+                                ⏱️ {nom.hoursSaved}h saved
+                              </span>
+                            )}
+                          </td>
                           <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)', wordBreak: 'break-word' }}>{nom.reason}</td>
                           <td style={{ whiteSpace: 'nowrap', fontWeight: '600', color: badge ? badge.color : 'var(--text-muted)' }}>
                             {badge ? `${badge.emoji} ${badge.label}` : '—'}
