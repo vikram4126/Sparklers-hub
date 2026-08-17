@@ -49,11 +49,19 @@ const LeadershipDashboard = () => {
     return [...seen].sort((a, b) => new Date(b) - new Date(a));
   }, [nominations]);
 
-  const currentMonthStr = useMemo(() => {
-    return getMonthKey(new Date());
-  }, []);
+  const defaultMonth = useMemo(() => {
+    const current = getMonthKey(new Date());
+    if (months.includes(current)) return current;
+    return months.length > 0 ? months[0] : 'All Time';
+  }, [months]);
 
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+
+  React.useEffect(() => {
+    if (defaultMonth && (!selectedMonth || (selectedMonth !== 'All Time' && !months.includes(selectedMonth)))) {
+      setSelectedMonth(defaultMonth);
+    }
+  }, [defaultMonth, months]);
 
   // Filter approved nominations; group by the Friday of their week
   const sections = useMemo(() => {

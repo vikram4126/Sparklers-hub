@@ -11,6 +11,7 @@ import LeadershipView from './pages/LeadershipView';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import PMApprovals from './pages/PMApprovals';
 import SelfNominate from './pages/SelfNominate';
+import OtherAwards from './pages/OtherAwards';
 import Feedback from './pages/Feedback';
 
 const RoleBasedHome = () => {
@@ -32,7 +33,9 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<RoleBasedHome />} />
             <Route path="my-dashboard" element={<UserDashboard />} />
+            <Route path="sparklers" element={<SelfNominate />} />
             <Route path="self-nominate" element={<SelfNominate />} />
+            <Route path="others" element={<OtherAwards />} />
             <Route path="nominate" element={<NominationForm />} />
             <Route path="leaderboard" element={<LeadershipDashboard />} />
             <Route path="pm-approvals" element={<PMApprovals />} />

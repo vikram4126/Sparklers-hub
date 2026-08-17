@@ -16,6 +16,10 @@ const AdminVerification = () => {
   const [searchQuery, setSearchQuery]   = useState('');
   const [activeTab, setActiveTab]       = useState('nominations');
 
+  // All Nominations Overview Filters
+  const [overviewStatusFilter, setOverviewStatusFilter]     = useState('All');
+  const [overviewCategoryFilter, setOverviewCategoryFilter] = useState('All');
+
   const filterBySearch = (nom) => {
     if (!searchQuery) return true;
     const lowerQ = searchQuery.toLowerCase();
@@ -38,10 +42,13 @@ const AdminVerification = () => {
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
 
-  const otherNominations = nominations
-    .filter(n => n.status !== 'PMApproved' && n.status !== 'Pending')
+  const allOverviewNominations = nominations
     .filter(filterBySearch)
     .sort((a, b) => b.id - a.id);
+
+  const filteredOverviewNominations = allOverviewNominations
+    .filter(n => overviewStatusFilter === 'All' || n.status === overviewStatusFilter)
+    .filter(n => overviewCategoryFilter === 'All' || getEffectiveCategory(n) === overviewCategoryFilter);
 
   const handleReject = () => {
     if (!rejectModal.reason?.trim()) {
@@ -329,9 +336,9 @@ const AdminVerification = () => {
           <p className="text-muted">No nominations waiting for final approval. ✅</p>
         </div>
       ) : (
-        <div className="table-container" style={{ marginBottom: '2rem' }}>
+        <div className="table-container" style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2rem' }}>
           <table>
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 2 }}>
               <tr>
                 <th>Nominee</th>
                 <th>Effective Category</th>
@@ -397,9 +404,9 @@ const AdminVerification = () => {
           <p className="text-muted">No other awards waiting for final approval. ✅</p>
         </div>
       ) : (
-        <div className="table-container" style={{ marginBottom: '2rem' }}>
+        <div className="table-container" style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2rem' }}>
           <table>
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 2 }}>
               <tr>
                 <th>Nominee</th>
                 <th>Award Name</th>
@@ -447,9 +454,9 @@ const AdminVerification = () => {
           <p className="text-muted">No nominations pending with PMs. ✅</p>
         </div>
       ) : (
-        <div className="table-container" style={{ marginBottom: '2.5rem' }}>
+        <div className="table-container" style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2.5rem' }}>
           <table>
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 2 }}>
               <tr>
                 <th>Nominee</th>
                 <th>Category</th>
@@ -482,18 +489,41 @@ const AdminVerification = () => {
         </div>
       )}
 
-      {/* All nominations overview */}
-      <h3 style={{ marginBottom: '1rem' }}>
-        All Nominations Overview
-        {otherNominations.length > 0 && (
-          <span style={{ marginLeft: '0.5rem', background: 'var(--surface-hover)', color: 'var(--text)', borderRadius: '999px', padding: '0.1rem 0.6rem', fontSize: '0.8rem', border: '1px solid var(--border)' }}>
-            {otherNominations.length}
-          </span>
-        )}
-      </h3>
-      <div className="table-container">
+      {/* All nominations overview with Filters */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', marginTop: '2.5rem' }}>
+        <h3 style={{ margin: 0 }}>
+          All Nominations Overview ({filteredOverviewNominations.length} / {allOverviewNominations.length})
+        </h3>
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <select 
+            className="form-select" 
+            value={overviewStatusFilter} 
+            onChange={e => setOverviewStatusFilter(e.target.value)} 
+            style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', width: 'auto' }}
+          >
+            <option value="All">All Statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="PMApproved">Awaiting Admin</option>
+            <option value="Pending">Pending PM</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+
+          <select 
+            className="form-select" 
+            value={overviewCategoryFilter} 
+            onChange={e => setOverviewCategoryFilter(e.target.value)} 
+            style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', width: 'auto' }}
+          >
+            <option value="All">All Categories</option>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="table-container" style={{ maxHeight: '350px', overflowY: 'auto', marginBottom: '2rem' }}>
         <table>
-          <thead>
+          <thead style={{ position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 2 }}>
             <tr>
               <th>Nominee</th>
               <th>Date</th>
@@ -503,7 +533,7 @@ const AdminVerification = () => {
             </tr>
           </thead>
           <tbody>
-            {otherNominations.map(nom => (
+            {filteredOverviewNominations.map(nom => (
               <tr key={nom.id}>
                 <td style={{ fontWeight: 600 }}>{nom.name}</td>
                 <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -520,8 +550,8 @@ const AdminVerification = () => {
                 </td>
               </tr>
             ))}
-            {otherNominations.length === 0 && (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No records yet.</td></tr>
+            {filteredOverviewNominations.length === 0 && (
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No records match selected filters.</td></tr>
             )}
           </tbody>
         </table>

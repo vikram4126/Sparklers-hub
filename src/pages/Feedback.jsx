@@ -1,53 +1,18 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Send, Paperclip, X, Zap, Award } from 'lucide-react';
-
-// ── Keyword Weight Dictionary (simulates SharePoint KeywordWeights list) ─────
-const KEYWORD_WEIGHTS = [
-  { keyword: 'automat', weight: 1.5 },
-  { keyword: 'revenue', weight: 1.4 },
-  { keyword: 'cost saving', weight: 1.4 },
-  { keyword: 'save', weight: 0.8 },
-  { keyword: 'hours', weight: 0.6 },
-  { keyword: 'efficiency', weight: 1.2 },
-  { keyword: 'nps', weight: 1.3 },
-  { keyword: 'client', weight: 0.8 },
-  { keyword: 'customer', weight: 0.8 },
-  { keyword: 'error', weight: 0.6 },
-  { keyword: 'reduce', weight: 0.7 },
-  { keyword: 'improve', weight: 0.5 },
-  { keyword: 'increase', weight: 0.7 },
-  { keyword: 'process', weight: 0.6 },
-  { keyword: 'tool', weight: 0.4 },
-  { keyword: 'implement', weight: 0.6 },
-  { keyword: 'data', weight: 0.5 },
-  { keyword: 'risk', weight: 0.8 },
-  { keyword: 'deadline', weight: 0.7 },
-  { keyword: 'sla', weight: 1.0 },
-  { keyword: 'kpi', weight: 1.0 },
-  { keyword: 'metric', weight: 0.9 },
-  { keyword: 'percent', weight: 0.8 },
-  { keyword: '%', weight: 0.7 },
-  { keyword: 'bottleneck', weight: 0.9 },
-  { keyword: 'blocker', weight: 0.8 },
-  { keyword: 'delay', weight: 0.7 },
-  { keyword: 'manual', weight: 0.6 },
-  { keyword: 'streamline', weight: 0.8 },
-  { keyword: 'pipeline', weight: 0.7 },
-];
+import { MessageSquare, Send, Paperclip, X, Filter, CheckCircle2, Clock, XCircle } from 'lucide-react';
 
 const detectCategory = (text) => {
   if (!text || text.trim().length < 5) return 'General Appreciation';
   const lower = text.toLowerCase();
   if (/automat|power automate|workflow|process|streamline|efficiency|save hours/.test(lower)) {
-    return 'Process Efficiency';
+    return 'Process Improvement';
   }
   if (/nps|client|customer|delight|support|satisfaction|feedback|outlook/.test(lower)) {
-    return 'Client Appreciation';
+    return 'Client Experience';
   }
   if (/team|culture|collaborate|mentor|help|supportive|relationship|people/.test(lower)) {
-    return 'Team & Culture';
+    return 'Team Culture';
   }
   if (/technical|code|architecture|bug|fix|design|develop|delivery/.test(lower)) {
     return 'Technical Excellence';
@@ -55,76 +20,60 @@ const detectCategory = (text) => {
   return 'General Appreciation';
 };
 
-const getAssessment = (text, score) => {
-  const lower = text.toLowerCase();
-  const insights = [];
-  const recommendations = [];
-
-  if (/automat|power automate|tool|software/.test(lower)) insights.push({ icon: '⚙️', text: 'Automation reference detected' });
-  if (/nps|client|customer/.test(lower)) insights.push({ icon: '🤝', text: 'Direct client impact recognized' });
-  if (/\d+\s*%|percent|hours|cost|revenue|saving/.test(lower)) insights.push({ icon: '📊', text: 'Quantified with metrics/savings' });
-  if (/risk|sla|kpi|deadline/.test(lower)) insights.push({ icon: '🚨', text: 'Performance metric/risk reference' });
-  if (text.length > 200) insights.push({ icon: '📝', text: 'Highly detailed context provided' });
-
-  if (score < 4) {
-    recommendations.push('Include specific numbers or metrics (e.g., "saved 4 hours weekly")');
-    recommendations.push('Add client name or specific project reference');
-    recommendations.push('Detail how this improved the current workflow');
-  } else if (score < 7) {
-    recommendations.push('Quantify the outcome (e.g. "reduced processing errors by 25%")');
-    recommendations.push('Mention which client or team KPI this directly impacts');
-  } else {
-    recommendations.push('Excellent feedback! Ready for submission.');
-  }
-
-  return { insights, recommendations };
-};
-
 const calcImpactScore = (text) => {
-  if (!text || text.trim().length < 10) return 0;
+  if (!text || text.trim().length < 10) return 3;
   const lower = text.toLowerCase();
   let raw = 0;
-  KEYWORD_WEIGHTS.forEach(({ keyword, weight }) => {
-    if (lower.includes(keyword)) raw += weight;
+  const keywords = ['automat', 'revenue', 'cost saving', 'save', 'hours', 'efficiency', 'nps', 'client', 'customer', 'improve', 'reduce'];
+  keywords.forEach(kw => {
+    if (lower.includes(kw)) raw += 1;
   });
-  const numericMatches = (lower.match(/\d+(\.\d+)?/g) || []).length;
-  raw += Math.min(numericMatches * 0.3, 1.5);
-  if (text.length > 100) raw += 0.5;
-  if (text.length > 200) raw += 0.5;
-  if (text.length > 350) raw += 0.5;
-  return Math.min(10, Math.max(1, Math.round(raw)));
-};
-
-const ScoreColor = (score) => {
-  if (score === 0) return '#9ca3af';
-  if (score <= 3) return '#ef4444';
-  if (score <= 5) return '#f59e0b';
-  if (score <= 7) return '#3b82f6';
-  return '#22c55e';
-};
-
-const ScoreLabel = (score) => {
-  if (score === 0) return 'Waiting for input…';
-  if (score <= 2) return 'Very Low Impact';
-  if (score <= 4) return 'Low Impact';
-  if (score <= 6) return 'Moderate Impact';
-  if (score <= 8) return 'High Impact';
-  return 'Exceptional Impact';
+  if (text.length > 100) raw += 1;
+  if (text.length > 200) raw += 1;
+  return Math.min(10, Math.max(1, Math.round(raw || 3)));
 };
 
 export default function Feedback() {
-  const { addFeedback, currentUser } = useAppContext();
-  const navigate = useNavigate();
+  const { feedbacks, addFeedback, currentUser, getPMForUser } = useAppContext();
+  const pm = getPMForUser(currentUser);
   const fileInputRef = useRef(null);
 
+  // Form state
   const [form, setForm] = useState({ description: '', fileName: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedMessage, setSubmittedMessage] = useState('');
   const [error, setError] = useState('');
 
-  const computedCategory = useMemo(() => detectCategory(form.description), [form.description]);
-  const impactScore = useMemo(() => calcImpactScore(form.description), [form.description]);
-  const { insights, recommendations } = useMemo(() => getAssessment(form.description, impactScore), [form.description, impactScore]);
-  const scoreColor = ScoreColor(impactScore);
+  // Table filters
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // Filtered feedbacks for logged-in user
+  const myFeedbacks = useMemo(() => {
+    return (feedbacks || [])
+      .filter(f => f.submittedBy === currentUser)
+      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+  }, [feedbacks, currentUser]);
+
+  const approvedCount = useMemo(() => myFeedbacks.filter(f => (f.status || 'Approved') === 'Approved').length, [myFeedbacks]);
+  const pendingCount  = useMemo(() => myFeedbacks.filter(f => (f.status || 'Approved') === 'Pending').length, [myFeedbacks]);
+  const avgImpact     = useMemo(() => {
+    if (myFeedbacks.length === 0) return null;
+    const sum = myFeedbacks.reduce((acc, f) => acc + (f.impactScore || 3), 0);
+    return (sum / myFeedbacks.length).toFixed(1);
+  }, [myFeedbacks]);
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set(myFeedbacks.map(f => f.category).filter(Boolean));
+    return ['All Categories', ...Array.from(set).sort()];
+  }, [myFeedbacks]);
+
+  const filteredFeedbacks = useMemo(() => {
+    return myFeedbacks.filter(fb => {
+      if (categoryFilter !== 'All Categories' && fb.category !== categoryFilter) return false;
+      if (statusFilter !== 'All' && (fb.status || 'Approved') !== statusFilter) return false;
+      return true;
+    });
+  }, [myFeedbacks, categoryFilter, statusFilter]);
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -138,60 +87,76 @@ export default function Feedback() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.description.trim() || form.description.trim().length < 20) {
-      return setError('Please write or paste a more detailed feedback (at least 20 characters).');
+    if (!form.description.trim() || form.description.trim().length < 15) {
+      return setError('Please write or paste a more detailed feedback (at least 15 characters).');
     }
+
+    const autoCategory = detectCategory(form.description);
+    const score = calcImpactScore(form.description);
+    const initialStatus = ['Kumaran', 'Krishan'].includes(pm) ? 'Approved' : 'Pending';
+
     addFeedback({
       submittedBy: currentUser,
-      category: computedCategory,
+      to: pm,
+      category: autoCategory,
       description: form.description.trim(),
-      impactScore,
+      impactScore: score,
       hasAttachment: !!form.fileName,
       attachmentName: form.fileName || null,
+      status: initialStatus
     });
-    setSubmitted(true);
+
+    setSubmittedMessage(
+      initialStatus === 'Approved'
+        ? `Feedback logged and approved!`
+        : `Feedback logged! Submitted to PM (${pm}) for approval.`
+    );
+
+    setForm({ description: '', fileName: '' });
+    setError('');
+    setTimeout(() => setSubmittedMessage(''), 5000);
   };
 
-  if (submitted) {
-    return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-        <h1 style={{ marginBottom: '0.5rem' }}>Feedback Successfully Logged!</h1>
-        <p className="text-muted" style={{ maxWidth: '420px', marginBottom: '0.5rem' }}>
-          Your client feedback has been added to your portfolio.
-        </p>
-        <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '2rem' }}>
-          Auto-Detected Category: <strong>{computedCategory}</strong> | Impact: <strong style={{ color: scoreColor }}>{impactScore}/10 — {ScoreLabel(impactScore)}</strong>
-        </p>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/')}>Back to Dashboard</button>
-          <button className="btn btn-secondary" onClick={() => { setSubmitted(false); setForm({ description: '', fileName: '' }); }}>Log Another Feedback</button>
+  return (
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Client Feedback</h1>
+          <p className="text-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+            Log client appreciation on the left, and view your client feedback profile history on the right.
+          </p>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="animate-fade-in">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.25rem' }}>Log Client Feedback</h1>
-        <p className="text-muted">Paste feedback you received from client emails (e.g. Outlook) to evaluate impact and save to your portfolio.</p>
-      </div>
+      {submittedMessage && (
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', color: '#15803d', padding: '0.75rem 1.25rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 600 }}>
+          <CheckCircle2 size={18} />
+          {submittedMessage}
+        </div>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+      {/* Main Side-by-Side Content Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+        
+        {/* LEFT COLUMN: Log Feedback Form */}
+        <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+            <MessageSquare size={20} color="var(--primary)" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Log Client Feedback</h3>
+          </div>
 
-        {/* LEFT: Form */}
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
             <div>
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Paste Outlook / Client Feedback Text <span style={{ color: 'var(--accent)' }}>*</span></span>
+              <label className="form-label" style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Outlook / Email Content <span style={{ color: 'var(--accent)' }}>*</span></span>
                 <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 400 }}>{form.description.length} chars</span>
               </label>
               <textarea
-                className="form-input" rows="12"
-                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
-                placeholder="Paste the email or feedback content here. The Analyzer on the right will automatically classify the category and score its impact in real-time…"
+                className="form-input"
+                rows="8"
+                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem', lineHeight: 1.5 }}
+                placeholder="Paste the email or feedback received from client here..."
                 value={form.description}
                 onChange={e => handleChange('description', e.target.value)}
                 required
@@ -199,23 +164,25 @@ export default function Feedback() {
             </div>
 
             <div>
-              <label className="form-label">Attachment Email Snapshot <span style={{ fontSize: '0.78rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
+              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+                Attachment Email Snapshot <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span>
+              </label>
               <div
-                style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
+                style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '0.85rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
                 onClick={() => fileInputRef.current?.click()}
               >
                 {form.fileName ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <Paperclip size={16} color="var(--primary)" />
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)' }}>{form.fileName}</span>
+                    <Paperclip size={14} color="var(--primary)" />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>{form.fileName}</span>
                     <button type="button" onClick={e => { e.stopPropagation(); handleChange('fileName', ''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex' }}>
                       <X size={14} />
                     </button>
                   </div>
                 ) : (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    <Paperclip size={18} style={{ marginBottom: '0.25rem' }} />
-                    <div>Click to attach Outlook screenshot or PDF</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    <Paperclip size={16} style={{ marginBottom: '0.2rem' }} />
+                    <div>Click to attach screenshot or PDF</div>
                   </div>
                 )}
                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
@@ -223,127 +190,144 @@ export default function Feedback() {
             </div>
 
             {error && (
-              <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
                 {error}
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => navigate('/')} style={{ flex: 1 }}>Cancel</button>
-              <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
-                <Send size={16} /> Log Feedback
-              </button>
-            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.75rem' }}>
+              <Send size={16} /> Submit to PM ({pm})
+            </button>
           </form>
         </div>
 
-        {/* RIGHT: AI Impact Analyzer */}
-        <div style={{ position: 'sticky', top: '80px' }}>
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(0,51,141,0.07), rgba(114,19,234,0.06))',
-            border: '1px solid rgba(114,19,234,0.2)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: '16px',
-            padding: '1.75rem',
-            boxShadow: '0 8px 32px rgba(114,19,234,0.08)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-              <div style={{ background: 'linear-gradient(135deg, var(--primary), var(--secondary))', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}>
-                <Zap size={16} color="white" />
-              </div>
-              <div>
-                <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Feedback Analyzer</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Auto-classifies content & impact</div>
-              </div>
+        {/* RIGHT COLUMN: Profile & History Table */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          
+          {/* Profile Header & Summary Pills */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>My Client Feedback Profile</h3>
+              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Client appreciation record for {currentUser}</p>
             </div>
-
-            {/* Auto Category */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifySelf: 'stretch', gap: '0.75rem' }}>
-              <Award size={18} color="var(--primary)" />
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Auto-Category</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>{computedCategory}</div>
+            
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ background: 'rgba(5, 150, 105, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>LOGGED</span>
+                <strong style={{ fontSize: '1.1rem', color: '#059669' }}>{myFeedbacks.length}</strong>
               </div>
-            </div>
-
-            {/* Gauge */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div style={{ position: 'relative', width: '150px', height: '85px', overflow: 'hidden' }}>
-                <svg width="150" height="85" viewBox="0 0 150 85">
-                  <path d="M 15 75 A 60 60 0 0 1 135 75" fill="none" stroke="var(--border)" strokeWidth="10" strokeLinecap="round" />
-                  <path
-                    d="M 15 75 A 60 60 0 0 1 135 75"
-                    fill="none" stroke={scoreColor} strokeWidth="10" strokeLinecap="round"
-                    strokeDasharray={`${(impactScore / 10) * 188} 188`}
-                    style={{ transition: 'all 0.5s ease' }}
-                  />
-                </svg>
-                <div style={{ position: 'absolute', bottom: '0', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', lineHeight: 1 }}>
-                  <div style={{ fontSize: '2.2rem', fontWeight: '900', color: scoreColor, transition: 'color 0.5s ease' }}>
-                    {impactScore === 0 ? '—' : impactScore}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>/ 10</div>
+              {avgImpact && (
+                <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>AVG IMPACT</span>
+                  <strong style={{ fontSize: '1.1rem', color: '#2563eb' }}>{avgImpact}/10</strong>
                 </div>
-              </div>
-              <div style={{ fontWeight: '600', fontSize: '0.85rem', color: scoreColor, marginTop: '0.35rem', transition: 'color 0.5s ease' }}>
-                {ScoreLabel(impactScore)}
-              </div>
-            </div>
-
-            {/* Score Dots */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-              {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <div key={n} style={{
-                  width: '22px', height: '22px', borderRadius: '50%',
-                  background: impactScore >= n ? ScoreColor(n) : 'var(--surface-hover)',
-                  border: `2px solid ${impactScore >= n ? ScoreColor(n) : 'var(--border)'}`,
-                  fontSize: '0.6rem', color: impactScore >= n ? 'white' : 'var(--text-muted)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
-                  transition: 'all 0.3s ease'
-                }}>
-                  {n}
-                </div>
-              ))}
-            </div>
-
-            {/* Detected Signals */}
-            {insights.length > 0 && (
-              <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                  Detected Signals
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  {insights.map((ins, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
-                      <span>{ins.icon}</span> {ins.text}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Suggestions */}
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                💡 Suggestions
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {recommendations.map((rec, i) => (
-                  <div key={i} style={{ fontSize: '0.78rem', color: 'var(--text-muted)', paddingLeft: '0.75rem', borderLeft: '2px solid var(--border)' }}>
-                    {rec}
-                  </div>
-                ))}
+              )}
+              <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
+                <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
               </div>
             </div>
+          </div>
 
-            {impactScore === 0 && (
-              <div style={{ textAlign: 'center', padding: '1rem 0', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                <MessageSquare size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                <div>Start typing or paste client feedback to evaluate impact</div>
+          {/* Filters Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem', fontWeight: 700 }}>
+              <Filter size={16} color="var(--primary)" />
+              <span>Filter Feedback Profile:</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <select
+                className="form-select"
+                value={categoryFilter}
+                onChange={e => setCategoryFilter(e.target.value)}
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+              >
+                {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+
+              <select
+                className="form-select"
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Scrollable Table Area */}
+          <div className="table-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '100%' }}>
+            {filteredFeedbacks.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <MessageSquare size={36} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                <div>No feedbacks match the selected filters.</div>
               </div>
+            ) : (
+              <table style={{ minWidth: '600px' }}>
+                <thead style={{ sticky: 'top', top: 0, background: 'var(--surface)', zIndex: 1 }}>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Feedback Snippet</th>
+                    <th>Impact Score</th>
+                    <th>Attachment</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFeedbacks.map(fb => {
+                    const scoreColor = (fb.impactScore || 3) >= 8 ? '#22c55e' : (fb.impactScore || 3) >= 5 ? '#3b82f6' : '#f59e0b';
+                    const st = fb.status || 'Approved';
+                    return (
+                      <tr key={fb.id}>
+                        <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                          {new Date(fb.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td>
+                          <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.5rem', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                            {fb.category}
+                          </span>
+                        </td>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '220px' }}>
+                          {fb.description.length > 70 ? fb.description.slice(0, 70) + '…' : fb.description}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ fontWeight: '800', fontSize: '1rem', color: scoreColor }}>{fb.impactScore || '—'}</span>
+                          {fb.impactScore && <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>/10</span>}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>{fb.hasAttachment ? '📎' : '—'}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          {st === 'Approved' && (
+                            <span className="badge badge-approved" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <CheckCircle2 size={12} /> Approved
+                            </span>
+                          )}
+                          {st === 'Pending' && (
+                            <span className="badge badge-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <Clock size={12} /> Pending PM
+                            </span>
+                          )}
+                          {st === 'Rejected' && (
+                            <span className="badge badge-rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} title={fb.rejectReason}>
+                              <XCircle size={12} /> Rejected
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
+
         </div>
+
       </div>
     </div>
   );

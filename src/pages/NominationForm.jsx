@@ -72,7 +72,7 @@ const NominationForm = () => {
             {formData.category === 'Process & Efficiency' && (
               <div className="form-group" style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
                 <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700' }}>
-                  ⏱️ Estimated Hours Saved per Week/Month
+                  Estimated Hours Saved per Week/Month
                 </label>
                 <input 
                   type="number"
@@ -84,7 +84,7 @@ const NominationForm = () => {
                   onChange={(e) => setFormData({...formData, hoursSaved: e.target.value})}
                 />
                 <small style={{ display: 'block', marginTop: '0.4rem', color: 'var(--text-muted)' }}>
-                  💡 This metric fuels leadership's <strong>Efficiency ROI Dashboard</strong> and <strong>Automation Leaderboard</strong>.
+                  This metric fuels leadership's <strong>Efficiency ROI Dashboard</strong> and <strong>Automation Leaderboard</strong>.
                 </small>
               </div>
             )}

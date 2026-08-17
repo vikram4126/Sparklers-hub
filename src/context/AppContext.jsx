@@ -339,34 +339,40 @@ export const AppProvider = ({ children }) => {
       id: 2001,
       submittedBy: 'Parteek',
       to: 'Abhineet',
+      pm: 'Abhineet',
       category: 'Process Improvement',
       description: 'We should automate the weekly reporting process. Currently it takes 4 hours manually every Friday. Implementing Power Automate could save the team significant time and reduce client delivery errors by at least 30%.',
       impactScore: 9,
       hasAttachment: false,
       submittedAt: '2026-07-15T10:30:00Z',
-      acknowledged: false
+      acknowledged: false,
+      status: 'Approved'
     },
     {
       id: 2002,
       submittedBy: 'Vikram',
       to: 'Himanshu',
+      pm: 'Himanshu',
       category: 'Client Experience',
       description: 'Client NPS has dropped this quarter. I think we should schedule bi-weekly check-in calls to address pain points proactively.',
       impactScore: 7,
       hasAttachment: false,
       submittedAt: '2026-07-18T14:00:00Z',
-      acknowledged: false
+      acknowledged: false,
+      status: 'Pending'
     },
     {
       id: 2003,
       submittedBy: 'Sivani',
       to: 'Ameen',
+      pm: 'Ameen',
       category: 'Team Culture',
       description: 'The team needs more collaboration sessions. It would be great to have monthly design reviews.',
       impactScore: 4,
       hasAttachment: false,
       submittedAt: '2026-07-20T09:15:00Z',
-      acknowledged: true
+      acknowledged: true,
+      status: 'Approved'
     }
   ];
 
@@ -380,13 +386,24 @@ export const AppProvider = ({ children }) => {
   }, [feedbacks]);
 
   const addFeedback = (feedback) => {
+    const pm = getPMForUser(feedback.submittedBy);
     const newFeedback = {
       ...feedback,
       id: Date.now(),
       submittedAt: new Date().toISOString(),
-      acknowledged: false
+      acknowledged: false,
+      status: feedback.status || 'Pending',
+      pm
     };
     setFeedbacks(prev => [...prev, newFeedback]);
+  };
+
+  const approveFeedback = (id) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'Approved', approvedAt: new Date().toISOString() } : f));
+  };
+
+  const rejectFeedback = (id, reason) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'Rejected', rejectReason: reason } : f));
   };
 
   const acknowledgeFeedback = (id) => {
@@ -439,23 +456,27 @@ export const AppProvider = ({ children }) => {
 
   const addNomination = (nomination, submittedByRole = 'User') => {
     const isSubmittedByPM = ['PM', 'Leadership', 'Director'].includes(submittedByRole);
+    const now = new Date().toISOString();
     setNominations(prev => [...prev, {
       ...nomination,
       id: Date.now(),
       // If PM nominates directly, skip PM queue → go straight to Admin
       status: nomination.status || (isSubmittedByPM ? 'PMApproved' : 'Pending'),
-      date: new Date().toISOString(),
+      submittedAt: nomination.submittedAt || nomination.date || now,
+      date: nomination.date || now,
       submittedBy: submittedByRole
     }]);
   };
 
   const pmApprove = (id, pmCategory, pmReason) => {
+    const now = new Date().toISOString();
     setNominations(prev => prev.map(n =>
       n.id === id ? {
         ...n,
         status: 'PMApproved',
         pmCategory: pmCategory || '',
-        pmReason: pmReason || ''
+        pmReason: pmReason || '',
+        pmApprovedAt: now
       } : n
     ));
   };
@@ -467,12 +488,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const adminApprove = (id, adminCategory, adminReason) => {
+    const now = new Date().toISOString();
     setNominations(prev => prev.map(n =>
       n.id === id ? {
         ...n,
         status: 'Approved',
         adminCategory: adminCategory || '',
-        adminReason: adminReason || ''
+        adminReason: adminReason || '',
+        approvedAt: now,
+        date: now // Set date to approval timestamp so it immediately lands in the current week's Leaderboard & Admin Generator
       } : n
     ));
   };
@@ -543,6 +567,8 @@ export const AppProvider = ({ children }) => {
       // Feedbacks
       feedbacks,
       addFeedback,
+      approveFeedback,
+      rejectFeedback,
       acknowledgeFeedback
     }}>
       {children}

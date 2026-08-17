@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users, Award, MessageSquare } from 'lucide-react';
+import { FormInput, ShieldCheck, Trophy, Palette, Home, UserCircle, Users, Award, MessageSquare, Zap } from 'lucide-react';
 import { useAppContext, ROLE_USERS } from '../context/AppContext';
 
 const Layout = () => {
@@ -13,7 +13,8 @@ const Layout = () => {
   
   const pendingSparklers = nominations.filter(n => n.status === 'Pending' && myReportees.includes(n.name)).length;
   const pendingExt = externalAwards.filter(a => a.pm === currentUser && a.status === 'Pending').length;
-  const totalPendingPM = pendingSparklers + pendingExt;
+  const pendingFbPM = (feedbacks || []).filter(f => (f.pm === currentUser || f.to === currentUser || myReportees.includes(f.submittedBy)) && f.status === 'Pending').length;
+  const totalPendingPM = pendingSparklers + pendingExt + pendingFbPM;
   
   const pendingAdmin = nominations.filter(n => n.status === 'PMApproved').length;
   const unreadFeedbacks = feedbacks ? feedbacks.filter(f => f.to === currentUser && !f.acknowledged).length : 0;
@@ -33,7 +34,7 @@ const Layout = () => {
         </div>
 
         <div className="sidebar-nav">
-          {/* My Dashboard — Available for ALL roles to view their personal badge, awards & feedbacks */}
+          {/* My Dashboard — Personal badge & Leaderboard */}
           <NavLink to="/my-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <UserCircle size={20} />
             My Dashboard
@@ -47,23 +48,31 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Self Nominate — Visible to User, PM, Admin (NOT Managers, AD, Director) */}
+          {/* Sparklers — Self nominate & history */}
           {['User', 'PM', 'Admin'].includes(currentRole) && (
-            <NavLink to="/self-nominate" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/sparklers" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Zap size={20} />
+              Sparklers
+            </NavLink>
+          )}
+
+          {/* Others — Log external awards & history */}
+          {['User', 'PM', 'Admin'].includes(currentRole) && (
+            <NavLink to="/others" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Award size={20} />
-              Self Nominate
+              Others
             </NavLink>
           )}
 
-          {/* Nominate - visible to anyone with reportees EXCEPT AD/Director */}
-          {isManager && currentRole !== 'Director' && (
-            <NavLink to="/nominate" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              <FormInput size={20} />
-              Nominate Team Member
+          {/* Feedback — Log client feedback & history */}
+          {currentRole !== 'Admin' && (
+            <NavLink to="/feedback" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <MessageSquare size={20} />
+              Feedback
             </NavLink>
           )}
 
-          {/* PM Tab — Team Dashboard approval (Not for AD/Director) */}
+          {/* PM Tab — Team Dashboard & Nominate Team Member (Not for AD/Director) */}
           {isManager && currentRole !== 'Director' && (
             <NavLink to="/pm-approvals" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Users size={20} />
@@ -97,19 +106,6 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Feedback — visible to all non-admin roles */}
-          {currentRole !== 'Admin' && (
-            <NavLink to="/feedback" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              <MessageSquare size={20} />
-              Feedback
-              {unreadFeedbacks > 0 && (
-                <span style={{ marginLeft: 'auto', background: 'var(--secondary)', color: 'white', borderRadius: '999px', padding: '0.1rem 0.5rem', fontSize: '0.75rem' }}>
-                  {unreadFeedbacks}
-                </span>
-              )}
-            </NavLink>
-          )}
-
           {/* Winners Board — always last */}
           <NavLink to="/leaderboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <Trophy size={20} />
@@ -134,7 +130,6 @@ const Layout = () => {
         }}>
           {/* Left: Branding */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary)', letterSpacing: '-0.5px' }}>Sparklers</span>
           </div>
 
           {/* Right: Controls & User Info */}

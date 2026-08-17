@@ -1,307 +1,321 @@
-import React, { useState } from 'react';
-import { useAppContext, CATEGORIES, EXTERNAL_AWARD_TYPES } from '../context/AppContext';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Award, Calendar, Building2, User, FileText, CheckCircle, Star } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { useAppContext, CATEGORIES } from '../context/AppContext';
+import { Send, Filter, CheckCircle2, Clock, XCircle, Zap, ShieldCheck, Trophy, Award } from 'lucide-react';
+
+const getFiscalYear = (dateStr) => {
+  const d = new Date(dateStr);
+  const month = d.getMonth();
+  const year = d.getFullYear();
+  const fyStart = month >= 9 ? year : year - 1;
+  return `FY ${fyStart}-${String(fyStart + 1).slice(2)}`;
+};
 
 const SelfNominate = () => {
-  const { addNomination, addExternalAward, currentUser, getPMForUser } = useAppContext();
-  const navigate = useNavigate();
-
+  const { nominations, addNomination, currentUser, getPMForUser, getEffectiveCategory, getEffectiveReason } = useAppContext();
   const pm = getPMForUser(currentUser);
-  const [activeTab, setActiveTab] = useState('sparklers');
 
-  // Sparklers State
+  // Form state
   const [category, setCategory] = useState('');
   const [reason, setReason] = useState('');
   const [hoursSaved, setHoursSaved] = useState('');
-  const [sparklersSubmitted, setSparklersSubmitted] = useState(false);
-
-  // Other Awards State
-  const [form, setForm] = useState({
-    awardName: '',
-    customAwardName: '',
-    platform: '',
-    dateReceived: '',
-    description: ''
-  });
-  const [otherSubmitted, setOtherSubmitted] = useState(false);
+  const [submittedMessage, setSubmittedMessage] = useState('');
   const [error, setError] = useState('');
 
-  const handleSparklersSubmit = (e) => {
-    e.preventDefault();
-    if (category && reason) {
-      addNomination({ 
-        name: currentUser, 
-        category, 
-        reason,
-        hoursSaved: Number(hoursSaved) || 0,
-        status: ['Kumaran', 'Krishan'].includes(pm) ? 'PMApproved' : 'Pending'
-      });
-      setSparklersSubmitted(true);
-    }
-  };
+  // Table filters
+  const [fyFilter, setFyFilter] = useState('All Time');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
 
-  const handleOtherChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    setError('');
-  };
+  // All nominations for current user
+  const myNominations = useMemo(() => {
+    return nominations
+      .filter(n => n.name === currentUser)
+      .sort((a, b) => new Date(b.date || b.id) - new Date(a.date || a.id));
+  }, [nominations, currentUser]);
 
-  const finalAwardName = form.awardName === 'Other' ? form.customAwardName.trim() : form.awardName;
+  const approvedCount = useMemo(() => myNominations.filter(n => n.status === 'Approved').length, [myNominations]);
+  const pendingCount  = useMemo(() => myNominations.filter(n => n.status === 'Pending' || n.status === 'PMApproved').length, [myNominations]);
+  const totalHours    = useMemo(() => myNominations.filter(n => n.status === 'Approved').reduce((sum, n) => sum + (Number(n.hoursSaved) || 0), 0), [myNominations]);
 
-  const handleOtherSubmit = (e) => {
-    e.preventDefault();
-    if (!finalAwardName) return setError('Please select or enter an award name.');
-    if (!form.dateReceived) return setError('Please select the date you received this award.');
-    if (!form.description.trim()) return setError('Please provide a short description.');
+  const fyOptions = useMemo(() => {
+    const set = new Set(myNominations.map(n => getFiscalYear(n.date)));
+    return ['All Time', ...Array.from(set).sort().reverse()];
+  }, [myNominations]);
 
-    addExternalAward({
-      submittedBy: currentUser,
-      awardName: finalAwardName,
-      platform: form.platform.trim() || 'Not specified',
-      dateReceived: form.dateReceived,
-      description: form.description.trim(),
-      status: ['Kumaran', 'Krishan'].includes(pm) ? 'AdminPending' : 'Pending'
+  const filteredNominations = useMemo(() => {
+    return myNominations.filter(nom => {
+      if (fyFilter !== 'All Time' && getFiscalYear(nom.date) !== fyFilter) return false;
+      if (categoryFilter !== 'All' && getEffectiveCategory(nom) !== categoryFilter) return false;
+      if (statusFilter !== 'All' && nom.status !== statusFilter) return false;
+      return true;
     });
+  }, [myNominations, fyFilter, categoryFilter, statusFilter, getEffectiveCategory]);
 
-    setOtherSubmitted(true);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!category) return setError('Please select a category.');
+    if (!reason.trim()) return setError('Please enter why you are nominating yourself.');
+
+    const initialStatus = ['Kumaran', 'Krishan'].includes(pm) ? 'PMApproved' : 'Pending';
+
+    addNomination(
+      {
+        name: currentUser,
+        category,
+        reason: reason.trim(),
+        hoursSaved: Number(hoursSaved) || 0,
+        status: initialStatus
+      },
+      'User'
+    );
+
+    setSubmittedMessage(
+      initialStatus === 'PMApproved'
+        ? `Sparklers self-nomination submitted and sent to Admin for final approval!`
+        : `Sparklers self-nomination submitted! Sent to your PM (${pm}) for review.`
+    );
+
+    setCategory('');
+    setReason('');
+    setHoursSaved('');
+    setError('');
+    setTimeout(() => setSubmittedMessage(''), 5000);
   };
-
-  if (sparklersSubmitted) {
-    return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-        <h1 style={{ marginBottom: '0.5rem' }}>Nomination Submitted!</h1>
-        <p className="text-muted" style={{ maxWidth: '420px', marginBottom: '2rem' }}>
-          Your self-nomination for <strong>{category}</strong> has been sent to your PM for review. You'll be notified once it's approved.
-        </p>
-        <button className="btn btn-primary" onClick={() => navigate('/')}>
-          <ArrowLeft size={18} /> Back to My Dashboard
-        </button>
-      </div>
-    );
-  }
-
-  if (otherSubmitted) {
-    return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-        <h1 style={{ marginBottom: '0.5rem' }}>Award Logged Successfully!</h1>
-        <p className="text-muted" style={{ maxWidth: '420px', marginBottom: '0.5rem' }}>
-          Your <strong>{finalAwardName}</strong> award has been submitted.
-        </p>
-        <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '2rem' }}>
-          {['Kumaran', 'Krishan'].includes(pm) 
-            ? `Your award has been sent directly to Admin for final approval.`
-            : `Your PM ${pm} has been notified via email and will approve it shortly.`}
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/')}>Go to My Dashboard</button>
-          <button className="btn btn-secondary" onClick={() => { setOtherSubmitted(false); setForm({ awardName: '', customAwardName: '', platform: '', dateReceived: '', description: '' }); }}>Log Another Award</button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '640px', margin: '0 auto' }}>
-      
-      {/* ── Tab Switcher ── */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '2px solid var(--border)' }}>
-        <button
-          onClick={() => setActiveTab('sparklers')}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: '0.75rem 1.5rem',
-            fontWeight: '600', fontSize: '1rem', flex: 1,
-            color: activeTab === 'sparklers' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'sparklers' ? '3px solid var(--primary)' : '3px solid transparent',
-            marginBottom: '-2.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
-          }}
-        >
-          <Star size={18} /> Sparklers Award
-        </button>
-        <button
-          onClick={() => setActiveTab('other')}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: '0.75rem 1.5rem',
-            fontWeight: '600', fontSize: '1rem', flex: 1,
-            color: activeTab === 'other' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'other' ? '3px solid var(--primary)' : '3px solid transparent',
-            marginBottom: '-2.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
-          }}
-        >
-          <Award size={18} /> Other Awards
-        </button>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Sparklers Awards</h1>
+          <p className="text-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+            Submit a new self-nomination on the left, and view your Sparklers profile history on the right.
+          </p>
+        </div>
       </div>
 
-      {activeTab === 'sparklers' && (
-        <>
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ marginBottom: '0.5rem' }}>Self Nominate</h1>
-            <p className="text-muted">Apply for a Sparklers award if you've gone above and beyond this week.</p>
-          </div>
-
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <form onSubmit={handleSparklersSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label className="form-label">Category</label>
-                <select 
-                  className="form-select" 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)} 
-                  required
-                  style={{ width: '100%' }}
-                >
-                  <option value="" disabled>Select category...</option>
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              {category === 'Process & Efficiency' && (
-                <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
-                  <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700' }}>
-                    ⏱️ Hours Saved per Week/Month
-                  </label>
-                  <input 
-                    type="number"
-                    min="0"
-                    max="500"
-                    className="form-input"
-                    placeholder="e.g. 20 (Hours saved through your automation or process fix)"
-                    value={hoursSaved}
-                    onChange={(e) => setHoursSaved(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                  <small style={{ display: 'block', marginTop: '0.4rem', color: 'var(--text-muted)' }}>
-                    💡 Your contribution will feed directly into leadership's <strong>Efficiency Metrics & Automation Leaderboard</strong>.
-                  </small>
-                </div>
-              )}
-
-              <div>
-                <label className="form-label">Why are you nominating yourself?</label>
-                <textarea 
-                  className="form-input" 
-                  rows="4" 
-                  value={reason} 
-                  onChange={(e) => setReason(e.target.value)} 
-                  required 
-                  placeholder="Describe your achievement..."
-                  style={{ width: '100%', resize: 'vertical' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => navigate('/')} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
-                  <Send size={16} /> Submit to PM
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
+      {submittedMessage && (
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', color: '#15803d', padding: '0.75rem 1.25rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 600 }}>
+          <CheckCircle2 size={18} />
+          {submittedMessage}
+        </div>
       )}
 
-      {activeTab === 'other' && (
-        <>
-          <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ marginBottom: '0.5rem' }}>Log Other Awards</h1>
-            <p className="text-muted">Received an award on another platform? Add it here to include it in your portfolio.</p>
+      {/* Main Side-by-Side Content Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+        
+        {/* LEFT COLUMN: Self-Nomination Form */}
+        <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+            <Zap size={20} color="var(--primary)" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Submit Sparklers Nomination</h3>
           </div>
 
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <form onSubmit={handleOtherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                  <Award size={16} color="var(--primary)" />
-                  Award Name <span style={{ color: 'var(--accent)' }}>*</span>
-                </label>
-                <select
-                  className="form-select"
-                  value={form.awardName}
-                  onChange={e => handleOtherChange('awardName', e.target.value)}
-                  required
-                  style={{ width: '100%' }}
-                >
-                  <option value="">— Select Award Type —</option>
-                  {EXTERNAL_AWARD_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-                {form.awardName === 'Other' && (
-                  <input
-                    className="form-input"
-                    style={{ marginTop: '0.5rem', width: '100%' }}
-                    placeholder="Enter award name..."
-                    value={form.customAwardName}
-                    onChange={e => handleOtherChange('customAwardName', e.target.value)}
-                    required
-                  />
-                )}
-              </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
+            <div>
+              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+                Category <span style={{ color: 'var(--accent)' }}>*</span>
+              </label>
+              <select
+                className="form-select"
+                value={category}
+                onChange={e => { setCategory(e.target.value); setError(''); }}
+                required
+                style={{ width: '100%', fontSize: '0.875rem' }}
+              >
+                <option value="" disabled>Select category...</option>
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
 
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                  <Building2 size={16} color="var(--primary)" />
-                  Platform / Source <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
+            {category === 'Process & Efficiency' && (
+              <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
+                <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.82rem', marginBottom: '0.3rem' }}>
+                  Hours Saved per Week/Month
                 </label>
                 <input
+                  type="number"
+                  min="0"
+                  max="500"
                   className="form-input"
-                  style={{ width: '100%' }}
-                  placeholder="e.g. KPMG Encore, Teams Recognition..."
-                  value={form.platform}
-                  onChange={e => handleOtherChange('platform', e.target.value)}
+                  placeholder="e.g. 20"
+                  value={hoursSaved}
+                  onChange={e => setHoursSaved(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.875rem' }}
                 />
+                <small style={{ display: 'block', marginTop: '0.3rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                  Feeds into leadership Automation Leaderboard.
+                </small>
               </div>
+            )}
 
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                  <Calendar size={16} color="var(--primary)" />
-                  Date Received <span style={{ color: 'var(--accent)' }}>*</span>
-                </label>
-                <input
-                  type="date"
-                  className="form-input"
-                  style={{ width: '100%' }}
-                  value={form.dateReceived}
-                  max={new Date().toISOString().split('T')[0]}
-                  onChange={e => handleOtherChange('dateReceived', e.target.value)}
-                  required
-                />
+            <div>
+              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+                Why are you nominating yourself? <span style={{ color: 'var(--accent)' }}>*</span>
+              </label>
+              <textarea
+                className="form-input"
+                rows="5"
+                value={reason}
+                onChange={e => { setReason(e.target.value); setError(''); }}
+                required
+                placeholder="Describe your achievement and impact..."
+                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem' }}
+              />
+            </div>
+
+            {error && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
+                {error}
               </div>
+            )}
 
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                  <FileText size={16} color="var(--primary)" />
-                  Description <span style={{ color: 'var(--accent)' }}>*</span>
-                </label>
-                <textarea
-                  className="form-input"
-                  style={{ width: '100%', minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }}
-                  placeholder="Briefly describe why you received this award..."
-                  value={form.description}
-                  onChange={e => handleOtherChange('description', e.target.value)}
-                  required
-                />
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.75rem' }}>
+              <Send size={16} /> Submit to PM ({pm})
+            </button>
+          </form>
+        </div>
+
+        {/* RIGHT COLUMN: Profile & History Table */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          
+          {/* Profile Header & Summary Pills */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>My Sparklers Profile</h3>
+              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Personal achievement ledger for {currentUser}</p>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ background: 'rgba(0, 51, 141, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>WON</span>
+                <strong style={{ fontSize: '1.1rem', color: 'var(--primary)' }}>{approvedCount}</strong>
               </div>
-
-              {error && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem' }}>
-                  {error}
+              <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
+                <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
+              </div>
+              {totalHours > 0 && (
+                <div style={{ background: 'rgba(0, 192, 174, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>HOURS SAVED</span>
+                  <strong style={{ fontSize: '1.1rem', color: '#00c0ae' }}>{totalHours}h</strong>
                 </div>
               )}
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => navigate('/')} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
-                  <Award size={16} /> Log Award
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        </>
-      )}
+
+          {/* Filters Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem', fontWeight: 700 }}>
+              <Filter size={16} color="var(--primary)" />
+              <span>Filter Sparklers Profile:</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <select
+                className="form-select"
+                value={fyFilter}
+                onChange={e => setFyFilter(e.target.value)}
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+              >
+                {fyOptions.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+              </select>
+
+              <select
+                className="form-select"
+                value={categoryFilter}
+                onChange={e => setCategoryFilter(e.target.value)}
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+              >
+                <option value="All">All Categories</option>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+
+              <select
+                className="form-select"
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Approved">Approved</option>
+                <option value="PMApproved">PM Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Scrollable Table Area */}
+          <div className="table-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '100%' }}>
+            {filteredNominations.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <Zap size={36} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                <div>No Sparklers entries match the selected filters.</div>
+              </div>
+            ) : (
+              <table style={{ minWidth: '600px' }}>
+                <thead style={{ sticky: 'top', top: 0, background: 'var(--surface)', zIndex: 1 }}>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Reason / Achievement</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredNominations.map(nom => (
+                    <tr key={nom.id}>
+                      <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                        {nom.date ? new Date(nom.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </td>
+                      <td>
+                        <span className="badge badge-category" style={getEffectiveCategory(nom) === 'Process & Efficiency' ? { backgroundColor: 'rgba(0,192,174,0.15)', color: '#00c0ae', borderColor: 'rgba(0,192,174,0.4)', fontSize: '0.78rem' } : { fontSize: '0.78rem' }}>
+                          {getEffectiveCategory(nom)}
+                        </span>
+                        {nom.hoursSaved > 0 && (
+                          <span style={{ display: 'inline-block', marginLeft: '0.4rem', fontSize: '0.75rem', color: '#00c0ae', fontWeight: '700' }}>
+                            {nom.hoursSaved}h saved
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '300px' }}>
+                        {getEffectiveReason(nom)}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {nom.status === 'Approved' && (
+                          <span className="badge badge-approved" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <CheckCircle2 size={12} /> Approved
+                          </span>
+                        )}
+                        {nom.status === 'PMApproved' && (
+                          <span className="badge" style={{ background: 'rgba(30,73,226,0.15)', color: '#1e49e2', border: '1px solid rgba(30,73,226,0.3)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <ShieldCheck size={12} /> PM Approved
+                          </span>
+                        )}
+                        {nom.status === 'Pending' && (
+                          <span className="badge badge-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <Clock size={12} /> Pending PM
+                          </span>
+                        )}
+                        {nom.status === 'Rejected' && (
+                          <span className="badge badge-rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} title={nom.rejectReason}>
+                            <XCircle size={12} /> Rejected
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+        </div>
+
+      </div>
     </div>
   );
 };
