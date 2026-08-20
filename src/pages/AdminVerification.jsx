@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext, CATEGORIES } from '../context/AppContext';
-import { Check, X, Search } from 'lucide-react';
+import { Check, X, Search, Sparkles } from 'lucide-react';
 
 const AdminVerification = () => {
   const {
@@ -8,7 +8,8 @@ const AdminVerification = () => {
     externalAwards, approveExternalAward, rejectExternalAward,
     getPMForUser, getTeamNameForUser,
     getEffectiveCategory, getEffectiveReason,
-    feedbacks, acknowledgeFeedback
+    feedbacks, acknowledgeFeedback,
+    aiEnabled, toggleAiFeature
   } = useAppContext();
 
   const [rejectModal, setRejectModal]   = useState({ open: false, id: null, reason: '' });
@@ -215,16 +216,39 @@ const AdminVerification = () => {
           </p>
         </div>
 
-        <div style={{ position: 'relative', width: '300px', maxWidth: '100%' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Search by name, category, or reason..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '2.5rem', width: '100%' }}
-          />
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button
+            onClick={() => toggleAiFeature()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.45rem 0.9rem',
+              borderRadius: '20px',
+              border: aiEnabled ? '1px solid #8b5cf6' : '1px solid var(--border)',
+              background: aiEnabled ? 'rgba(139, 92, 246, 0.12)' : 'var(--surface-hover)',
+              color: aiEnabled ? '#7c3aed' : 'var(--text-muted)',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.82rem'
+            }}
+            title="Admin Master Control: Toggle Feedback AI text analyzer ON/OFF"
+          >
+            <Sparkles size={16} color={aiEnabled ? '#8b5cf6' : 'currentColor'} />
+            Feedback AI: <span style={{ textTransform: 'uppercase', color: aiEnabled ? '#16a34a' : '#dc2626' }}>{aiEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+
+          <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search by name, category, or reason..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '2.5rem', width: '100%' }}
+            />
+          </div>
         </div>
       </div>
 

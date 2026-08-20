@@ -300,6 +300,9 @@ const mappedInitialNominations = [
 ];
 
 export const AppProvider = ({ children }) => {
+  // AI Feature Switch (Admin can toggle ON/OFF)
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const toggleAiFeature = (status) => setAiEnabled(status !== undefined ? status : !aiEnabled);
   const [nominations, setNominations] = useState(() => {
     const saved = localStorage.getItem('sparklers_nominations_v9');
     if (saved) {
@@ -579,7 +582,10 @@ export const AppProvider = ({ children }) => {
       approveFeedback,
       rejectFeedback,
       markFeedbackShared,
-      acknowledgeFeedback
+      acknowledgeFeedback,
+      // AI Feature Toggle
+      aiEnabled,
+      toggleAiFeature
     }}>
       {children}
     </AppContext.Provider>

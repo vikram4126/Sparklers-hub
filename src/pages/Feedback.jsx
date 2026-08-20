@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { MessageSquare, Send, Paperclip, X, Filter, CheckCircle2, Clock, XCircle, Download } from 'lucide-react';
+import { MessageSquare, Send, Paperclip, X, Filter, CheckCircle2, Clock, XCircle, Download, Sparkles } from 'lucide-react';
 
 const detectCategory = (text) => {
   if (!text || text.trim().length < 5) return 'General Appreciation';
@@ -34,7 +34,7 @@ const calcImpactScore = (text) => {
 };
 
 export default function Feedback() {
-  const { feedbacks, addFeedback, currentUser, getPMForUser } = useAppContext();
+  const { feedbacks, addFeedback, currentUser, getPMForUser, aiEnabled } = useAppContext();
   const pm = getPMForUser(currentUser);
   const fileInputRef = useRef(null);
 
@@ -42,6 +42,8 @@ export default function Feedback() {
   const [form, setForm] = useState({ description: '', fileName: '' });
   const [submittedMessage, setSubmittedMessage] = useState('');
   const [error, setError] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
 
   // Table filters
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
@@ -181,20 +183,107 @@ export default function Feedback() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
+              <label className="form-label" style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Outlook / Email Content <span style={{ color: 'var(--accent)' }}>*</span></span>
                 <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 400 }}>{form.description.length} chars</span>
               </label>
               <textarea
                 className="form-input"
-                rows="8"
+                rows="6"
                 style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem', lineHeight: 1.5 }}
                 placeholder="Paste the email or feedback received from client here..."
                 value={form.description}
-                onChange={e => handleChange('description', e.target.value)}
+                onChange={e => {
+                  handleChange('description', e.target.value);
+                  if (aiResult) setAiResult(null);
+                }}
                 required
               />
             </div>
+
+            {/* AI Analyze Action Bar */}
+            {aiEnabled ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={isAnalyzing || !form.description.trim()}
+                  onClick={() => {
+                    if (!form.description.trim() || form.description.trim().length < 10) {
+                      return setError('Please paste client feedback text before running AI analysis.');
+                    }
+                    setIsAnalyzing(true);
+                    setError('');
+                    setTimeout(() => {
+                      const detectedCat = detectCategory(form.description);
+                      const detectedScore = calcImpactScore(form.description);
+                      let tier = 'Standard Appreciation';
+                      let desc = 'Client provided positive routine feedback.';
+                      if (detectedScore >= 8) {
+                        tier = 'Strategic Game Changer';
+                        desc = 'High-impact feedback indicating major process efficiency or account booster.';
+                      } else if (detectedScore >= 5) {
+                        tier = 'High Value / NPS Booster';
+                        desc = 'Strong client appreciation highlighting quality delivery and project satisfaction.';
+                      }
+                      setAiResult({ tier, score: detectedScore, category: detectedCat, reasoning: desc });
+                      setIsAnalyzing(false);
+                    }, 600);
+                  }}
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justify: 'center',
+                    gap: '0.4rem',
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12))',
+                    border: '1px solid rgba(168, 85, 247, 0.3)',
+                    color: '#6366f1',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    padding: '0.55rem 0.8rem'
+                  }}
+                >
+                  <Sparkles size={16} color="#8b5cf6" className={isAnalyzing ? 'animate-spin' : ''} />
+                  {isAnalyzing ? 'Analyzing Text with AI...' : 'Feedback AI (Analyze Impact)'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ background: 'var(--surface-hover)', borderRadius: '8px', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Sparkles size={14} /> AI Text Analyzer is currently toggled OFF by Administrator.
+              </div>
+            )}
+
+            {/* AI Live Output Card */}
+            {aiResult && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.06))',
+                border: '1px solid rgba(168, 85, 247, 0.3)',
+                borderRadius: '10px',
+                padding: '0.85rem',
+                fontSize: '0.82rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <span style={{ fontWeight: 700, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Sparkles size={14} /> AI Impact Level:
+                  </span>
+                  <span style={{
+                    padding: '0.2rem 0.55rem',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    fontSize: '0.75rem',
+                    background: aiResult.score >= 8 ? 'rgba(234, 179, 8, 0.18)' : aiResult.score >= 5 ? 'rgba(59, 130, 246, 0.18)' : 'rgba(34, 197, 94, 0.18)',
+                    color: aiResult.score >= 8 ? '#ca8a04' : aiResult.score >= 5 ? '#2563eb' : '#16a34a'
+                  }}>
+                    {aiResult.tier} ({aiResult.score}/10)
+                  </span>
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.4 }}>
+                  <strong>Category:</strong> {aiResult.category}<br />
+                  <strong>Reasoning:</strong> {aiResult.reasoning}
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="form-label" style={{ fontSize: '0.85rem' }}>

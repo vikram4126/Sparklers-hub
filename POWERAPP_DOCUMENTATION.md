@@ -1597,6 +1597,51 @@ Notify("Client Feedback shared with team via Outlook email!", NotificationType.S
 
 ---
 
+### D. Zero-Prompt Feedback AI Analyzer (User Button + Admin ON/OFF Master Switch)
+
+User ko koi extra prompt text (*"Analyze feedback"* / *"Check impact"*) nahi likhna padega. Feedback textarea ke neche **`Feedback AI (Analyze Impact)`** button diya gaya hai. Admin is AI feature ko **ON / OFF** toggle kar sakta hai (jab tak project live AI production par move nahi ho jata).
+
+#### 1. SharePoint Settings List (Admin Configuration)
+Admin configuration store karne ke liye `AppSettings` list:
+- **Title**: `FeedbackAIEnabled` (Text)
+- **Value**: `true` / `false` (Text or Boolean)
+
+#### 2. Admin AI Switch Formula (`btnToggleAdminAI.OnSelect`)
+```powerfx
+// Admin Panel: Toggle AI Master Switch ON/OFF
+Set(varAIFeatureEnabled, !varAIFeatureEnabled);
+Patch(
+    AppSettings,
+    LookUp(AppSettings, Title = "FeedbackAIEnabled"),
+    { Value: Text(varAIFeatureEnabled) }
+);
+Notify("Feedback AI feature toggled " & If(varAIFeatureEnabled, "ON", "OFF"), NotificationType.Information);
+```
+
+#### 3. User Feedback AI Button Formula (`btnAnalyzeAI.OnSelect`)
+```powerfx
+// Button Visible condition: Admin ON switch active
+// OnClick: Auto-Analyze pasted text using PowerApps AI Builder / Copilot
+If(
+    varAIFeatureEnabled,
+    Set(varIsAnalyzing, true);
+    Set(
+        varAIAnalysisResult,
+        'AnalyzeClientFeedbackAI'.Predict(txtFeedbackDescription.Text)
+    );
+    Set(varIsAnalyzing, false);
+)
+```
+
+#### 4. Dynamic Screen Card Output (No user prompt required)
+Screen par live output Card `varAIAnalysisResult` ke according display hoga:
+- **Impact Badge**: `varAIAnalysisResult.ImpactTier` (Standard Appreciation / High Value / Strategic Game Changer)
+- **Impact Score**: `varAIAnalysisResult.ImpactScore` (1 to 10)
+- **Auto Category**: `varAIAnalysisResult.Category`
+- **Reasoning**: `varAIAnalysisResult.SummaryReason`
+
+---
+
 *Updated PowerApps Documentation — August 2026 Edition*
-*All SharePoint List Schemas, PowerFx Formulas, Font Tokens, Navigation & Power Automate Email/Export Workflows Complete.*
+*All SharePoint List Schemas, PowerFx Formulas, AI Text Analyzer Button, Admin Master Switch, Font Tokens, Navigation & Power Automate Email/Export Workflows Complete.*
 
