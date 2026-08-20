@@ -108,7 +108,7 @@ const SelfNominate = () => {
         <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
             <Zap size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Submit Sparklers Nomination</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Self Nomination</h3>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
@@ -133,7 +133,7 @@ const SelfNominate = () => {
             {category === 'Process & Efficiency' && (
               <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
                 <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.82rem', marginBottom: '0.3rem' }}>
-                  Hours Saved per Week/Month
+                  Hours Saved per Week
                 </label>
                 <input
                   type="number"
@@ -145,9 +145,6 @@ const SelfNominate = () => {
                   onChange={e => setHoursSaved(e.target.value)}
                   style={{ width: '100%', fontSize: '0.875rem' }}
                 />
-                <small style={{ display: 'block', marginTop: '0.3rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                  Feeds into leadership Automation Leaderboard.
-                </small>
               </div>
             )}
 

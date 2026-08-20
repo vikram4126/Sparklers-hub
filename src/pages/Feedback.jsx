@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { MessageSquare, Send, Paperclip, X, Filter, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { MessageSquare, Send, Paperclip, X, Filter, CheckCircle2, Clock, XCircle, Download } from 'lucide-react';
 
 const detectCategory = (text) => {
   if (!text || text.trim().length < 5) return 'General Appreciation';
@@ -56,11 +56,6 @@ export default function Feedback() {
 
   const approvedCount = useMemo(() => myFeedbacks.filter(f => (f.status || 'Approved') === 'Approved').length, [myFeedbacks]);
   const pendingCount  = useMemo(() => myFeedbacks.filter(f => (f.status || 'Approved') === 'Pending').length, [myFeedbacks]);
-  const avgImpact     = useMemo(() => {
-    if (myFeedbacks.length === 0) return null;
-    const sum = myFeedbacks.reduce((acc, f) => acc + (f.impactScore || 3), 0);
-    return (sum / myFeedbacks.length).toFixed(1);
-  }, [myFeedbacks]);
 
   const categoryOptions = useMemo(() => {
     const set = new Set(myFeedbacks.map(f => f.category).filter(Boolean));
@@ -82,13 +77,24 @@ export default function Feedback() {
 
   const handleFile = (e) => {
     const file = e.target.files[0];
-    if (file) handleChange('fileName', file.name);
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.msg')) {
+        setError('Only Outlook email files (.msg format) are allowed.');
+        handleChange('fileName', '');
+        return;
+      }
+      setError('');
+      handleChange('fileName', file.name);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.description.trim() || form.description.trim().length < 15) {
       return setError('Please write or paste a more detailed feedback (at least 15 characters).');
+    }
+    if (!form.fileName || !form.fileName.toLowerCase().endsWith('.msg')) {
+      return setError('Please attach the original Outlook email file (.msg format). Attachment is mandatory.');
     }
 
     const autoCategory = detectCategory(form.description);
@@ -124,9 +130,36 @@ export default function Feedback() {
         <div>
           <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Client Feedback</h1>
           <p className="text-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
-            Log client appreciation on the left, and view your client feedback profile history on the right.
+            Submit client appreciation on the left, and view your client feedback profile history on the right.
           </p>
         </div>
+        <button
+          className="btn btn-secondary"
+          onClick={() => {
+            if (myFeedbacks.length === 0) return alert('No client feedback records available to download.');
+            const headers = ['Date', 'Category', 'Description', 'Impact Level', 'Status', 'Attachment'];
+            const rows = myFeedbacks.map(f => [
+              `"${new Date(f.submittedAt).toLocaleDateString()}"`,
+              `"${f.category || ''}"`,
+              `"${(f.description || '').replace(/"/g, '""')}"`,
+              `"${f.impactTier || (f.impactScore >= 8 ? 'Strategic' : f.impactScore >= 5 ? 'High Value' : 'Standard')}"`,
+              `"${f.status || 'Approved'}"`,
+              `"${f.attachmentName || (f.hasAttachment ? 'Attached' : 'None')}"`
+            ]);
+            const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `${currentUser}_Client_Feedback_Portfolio_${new Date().getFullYear()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', fontWeight: 600 }}
+        >
+          <Download size={16} color="var(--primary)" />
+          Download Portfolio (CSV/Excel)
+        </button>
       </div>
 
       {submittedMessage && (
@@ -139,11 +172,11 @@ export default function Feedback() {
       {/* Main Side-by-Side Content Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
         
-        {/* LEFT COLUMN: Log Feedback Form */}
+        {/* LEFT COLUMN: Submit Feedback Form */}
         <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
             <MessageSquare size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Log Client Feedback</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Submit Client Feedback</h3>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
@@ -165,7 +198,7 @@ export default function Feedback() {
 
             <div>
               <label className="form-label" style={{ fontSize: '0.85rem' }}>
-                Attachment Email Snapshot <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span>
+                Outlook Email File (.msg format only) <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <div
                 style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '0.85rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
@@ -182,10 +215,10 @@ export default function Feedback() {
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                     <Paperclip size={16} style={{ marginBottom: '0.2rem' }} />
-                    <div>Click to attach screenshot or PDF</div>
+                    <div>Drag & drop or click to attach <strong>.msg</strong> email file</div>
                   </div>
                 )}
-                <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
+                <input type="file" accept=".msg" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
               </div>
             </div>
 
@@ -216,12 +249,10 @@ export default function Feedback() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>LOGGED</span>
                 <strong style={{ fontSize: '1.1rem', color: '#059669' }}>{myFeedbacks.length}</strong>
               </div>
-              {avgImpact && (
-                <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>AVG IMPACT</span>
-                  <strong style={{ fontSize: '1.1rem', color: '#2563eb' }}>{avgImpact}/10</strong>
-                </div>
-              )}
+              <div style={{ background: 'rgba(5, 150, 105, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>APPROVED</span>
+                <strong style={{ fontSize: '1.1rem', color: '#059669' }}>{approvedCount}</strong>
+              </div>
               <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
                 <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
@@ -237,14 +268,6 @@ export default function Feedback() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <select
-                className="form-select"
-                value={categoryFilter}
-                onChange={e => setCategoryFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
-              >
-                {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
 
               <select
                 className="form-select"
@@ -272,51 +295,53 @@ export default function Feedback() {
                 <thead style={{ sticky: 'top', top: 0, background: 'var(--surface)', zIndex: 1 }}>
                   <tr>
                     <th>Date</th>
-                    <th>Category</th>
-                    <th>Feedback Snippet</th>
-                    <th>Impact Score</th>
-                    <th>Attachment</th>
+                    <th style={{ width: '55%' }}>Feedback Snippet</th>
+                    <th>Impact Level</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredFeedbacks.map(fb => {
-                    const scoreColor = (fb.impactScore || 3) >= 8 ? '#22c55e' : (fb.impactScore || 3) >= 5 ? '#3b82f6' : '#f59e0b';
+                    const tierLabel = fb.impactTier || (fb.impactScore >= 8 ? '⭐ Strategic' : fb.impactScore >= 5 ? '🔵 High Value' : '🟢 Standard');
+                    const tierBg = tierLabel.includes('Strategic') ? 'rgba(234, 179, 8, 0.12)' : tierLabel.includes('High') ? 'rgba(59, 130, 246, 0.12)' : 'rgba(34, 197, 94, 0.12)';
+                    const tierColor = tierLabel.includes('Strategic') ? '#ca8a04' : tierLabel.includes('High') ? '#2563eb' : '#16a34a';
                     const st = fb.status || 'Approved';
                     return (
                       <tr key={fb.id}>
                         <td style={{ fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
                           {new Date(fb.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </td>
-                        <td>
-                          <span style={{ background: 'rgba(0,51,141,0.08)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '600', padding: '0.2rem 0.5rem', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                            {fb.category}
+                        <td style={{ color: 'var(--text-main)', fontSize: '0.88rem', lineHeight: 1.5 }}>
+                          {fb.description}
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          <span style={{ background: tierBg, color: tierColor, fontSize: '0.75rem', fontWeight: '700', padding: '0.2rem 0.6rem', borderRadius: '6px', display: 'inline-block' }}>
+                            {tierLabel}
                           </span>
                         </td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '220px' }}>
-                          {fb.description.length > 70 ? fb.description.slice(0, 70) + '…' : fb.description}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span style={{ fontWeight: '800', fontSize: '1rem', color: scoreColor }}>{fb.impactScore || '—'}</span>
-                          {fb.impactScore && <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>/10</span>}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>{fb.hasAttachment ? '📎' : '—'}</td>
                         <td style={{ whiteSpace: 'nowrap' }}>
-                          {st === 'Approved' && (
-                            <span className="badge badge-approved" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                              <CheckCircle2 size={12} /> Approved
-                            </span>
-                          )}
-                          {st === 'Pending' && (
-                            <span className="badge badge-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                              <Clock size={12} /> Pending PM
-                            </span>
-                          )}
-                          {st === 'Rejected' && (
-                            <span className="badge badge-rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} title={fb.rejectReason}>
-                              <XCircle size={12} /> Rejected
-                            </span>
-                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            {st === 'Approved' && (
+                              <span className="badge badge-approved" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <CheckCircle2 size={12} /> Approved
+                              </span>
+                            )}
+                            {st === 'Pending' && (
+                              <span className="badge badge-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <Clock size={12} /> Pending PM
+                              </span>
+                            )}
+                            {st === 'Rejected' && (
+                              <span className="badge badge-rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} title={fb.rejectReason}>
+                                <XCircle size={12} /> Rejected
+                              </span>
+                            )}
+                            {fb.hasAttachment && (
+                              <span title={fb.attachmentName || 'Attachment available'} style={{ cursor: 'pointer', background: 'var(--surface-hover)', padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center' }}>
+                                <Paperclip size={13} color="var(--primary)" />
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

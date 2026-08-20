@@ -154,15 +154,15 @@ Power Apps mein yeh screens banani hain:
 
 | #  | Screen Name         | Visible To               |
 |----|---------------------|--------------------------|
-| 1  | scrDashboard        | User, PM, Admin          |
-| 2  | scrSelfNominate     | User only                |
+| 1  | scrDashboard        | User, PM                 |
+| 2  | scrSelfNominate     | User, PM                 |
 | 3  | scrNominateTeam     | PM only                  |
 | 4  | scrWinnersBoard     | All roles                |
 | 5  | scrTeamApprovals    | PM only                  |
 | 6  | scrPMApproveModal   | PM only (overlay)        |
 | 7  | scrFinalApprovals   | Admin only               |
-| 8  | scrAdminApproveModal| Admin only (overlay)     |
-| 9  | scrDesignGenerator  | Admin only               |
+| 8  | scrDesignGenerator  | Admin only               |
+| 9  | scrFeedback         | User, PM (Hidden for AD/Director & Admin) |
 
 ---
 
@@ -428,17 +428,23 @@ Gallery formula:
 
 File reference: PMApprovals.jsx
 
-### Pending Nominations Gallery:
-  Filter(
-    Nominations,
-    Status = "Pending" && NomineeName in varMyReportees
-  )
-  Columns: Nominee | Category | Reason | Actions (Approve/Reject)
+### Pending Feedback Approvals & Detail Modal:
+  - PM pending list mein Har feedback ke saath **`👁️ View Details`** button rahega.
+  - Button click par PM ke saamne **Client Feedback Details Pop-up Modal (`scrViewFeedbackModal`)** khulega:
+    - **Submitted By**: Nominee / User Name
+    - **Date**: Submission Timestamp
+    - **Attachment Status**: `.msg` file / Email Snapshot attachment
+    - **Full Client Email Text**: Entire pasted/uploaded email text so PM can read complete details before decision.
+  - Decision Controls: Impact Level Selector (Standard / High Value / Strategic), **Approve & Tag** button, and **Reject** button (Mandatory Rejection Reason).
+
+### Team Filter Rule (Strict 1st-Level Direct Reportees Only):
+  - Har manager/lead ko sirf wahi reportees aur unke feedbacks/nominations dikhenge jo unke **Direct 1st-Level Reportees** hain (`varMyDirectReportees`).
+  - *Example*: Parteek reports to Abhineet ➔ Abhineet reports to Monam. Monam ko sirf **Abhineet** (Direct) dikhega, Parteek nahi (Reportee of Reportee filtered out).
 
 ### Past Actions Table:
   Filter(
     Nominations,
-    Status <> "Pending" && NomineeName in varMyReportees
+    Status <> "Pending" && NomineeName in varMyDirectReportees
   )
 
 ---
@@ -471,6 +477,19 @@ SECTION C: Buttons
         PMReason:   txtPMReason.Text
       });
       Navigate(scrTeamApprovals)
+
+SECTION D: Rejection Logic (Mandatory Reason)
+  - Reject Button OnSelect ->
+      If(
+        IsBlank(Trim(txtRejectReason.Text)),
+        Notify("Rejection reason is MANDATORY before rejecting any nomination or client feedback.", NotificationType.Error),
+        Patch(Nominations, varSelectedNom, {
+          Status: "Rejected",
+          RejectReason: txtRejectReason.Text
+        });
+        Navigate(scrTeamApprovals);
+        Notify("Nomination rejected.", NotificationType.Information)
+      )
 
 ---
 
@@ -1301,11 +1320,12 @@ Leadership ka focus efficiency aur time savings par alignment ke liye, PowerApps
 
 ---
 
-### Step 3: Executive & Leadership Dashboard KPI Formulas
+### Step 3: Executive & Leadership Dashboard KPI Formulas (Weekly Standard)
 
-1. **Total Hours Saved KPI Card (`lblTotalHoursSaved.Text`)**:
+1. **Total Segment Hours Saved KPI Card (`lblTotalHoursSaved.Text`)**:
    ```powerfx
-   Text(Sum(Filter(Nominations, Status = "Approved"), HoursSaved), "#,##0") & " hrs saved"
+   // Direct Sum of Weekly Hours Saved across all Approved Process & Efficiency nominations
+   Text(Sum(Filter(Nominations, Status = "Approved"), HoursSaved), "#,##0") & " hrs/wk saved"
    ```
 
 2. **Process Efficiency Nominations Count (`lblEffCount.Text`)**:
@@ -1317,7 +1337,7 @@ Leadership ka focus efficiency aur time savings par alignment ke liye, PowerApps
    ) & " Efficiency Awards"
    ```
 
-3. **Segment-Wise Hours Saved (for Manager View)**:
+3. **Segment-Wise Weekly Hours Saved (for Manager View)**:
    ```powerfx
    Text(
        Sum(
@@ -1328,17 +1348,17 @@ Leadership ka focus efficiency aur time savings par alignment ke liye, PowerApps
            HoursSaved
        ),
        "#,##0"
-   ) & " hrs"
+   ) & " hrs/wk"
    ```
 
 ---
 
 ### Step 4: Efficiency Champions Leaderboard Gallery Setup
 
-To show top employees by total hours saved on the **Winners Board / Executive Screen**:
+To show top employees by total weekly hours saved on the **Winners Board / Executive Screen**:
 
 1. Insert a **Vertical Gallery** (`galEfficiencyChampions`).
-2. Set `Items` property to group by employee name and sum total hours saved:
+2. Set `Items` property to group by employee name and sum total weekly hours saved:
    ```powerfx
    Sort(
        AddColumns(
@@ -1347,16 +1367,16 @@ To show top employees by total hours saved on the **Winners Board / Executive Sc
                "NomineeName",
                "GroupedNominations"
            ),
-           "TotalHoursSaved",
+           "TotalWeeklyHoursSaved",
            Sum(GroupedNominations, HoursSaved)
        ),
-       TotalHoursSaved,
+       TotalWeeklyHoursSaved,
        SortOrder.Descending
    )
    ```
 3. Inside Gallery Card Controls:
    - `lblNomineeName.Text` = `ThisItem.NomineeName`
-   - `lblHoursSavedBadge.Text` = `"⚡ " & Text(ThisItem.TotalHoursSaved) & " hrs saved"`
+   - `lblHoursSavedBadge.Text` = `"⚡ " & Text(ThisItem.TotalWeeklyHoursSaved) & " hrs/wk saved"`
    - `lblRankIcon.Text` = 
      ```powerfx
      Switch(
@@ -1477,6 +1497,106 @@ Notify("Navigated to My Personal Dashboard", NotificationType.Information);
 
 ---
 
+---
+
+## 25. Client Feedback Enhancements: 3-Tier PM Impact Scale, Portfolio Export & Outlook Team Broadcast
+
+### A. 3-Tier Business Impact Scale (Set by PM on Approval)
+
+User submission stage par impact field nahi rakhi gayi hai. Attachment (`.msg` / Email Snapshot PDF/Image) submission ke liye **Mandatory (`*`)** hai. PM Approval stage par 3-Tier Business Impact dropdown options:
+
+| Impact Tier | Value Label | Definition / Criteria | Score Equivalent |
+|---|---|---|---|
+| 🟢 Standard | Standard Appreciation | Routine good client feedback, praise email | 3 / 10 |
+| 🔵 High Value | High Value / NPS Booster | Strong client appreciation, key deliverable success | 7 / 10 |
+| ⭐ Strategic | Game Changer / Account Growth | Escalation solved, business extension, process transformation | 10 / 10 |
+
+**PM Approval Formula (`btnApproveFeedback.OnSelect`)**:
+```powerfx
+Patch(
+    ClientFeedbacks,
+    GalleryPendingFeedbacks.Selected,
+    {
+        Status: "Approved",
+        ImpactTier: drpPMImpactTier.Selected.Value,
+        ImpactScore: Switch(drpPMImpactTier.Selected.Value, "Game Changer / Account Growth", 10, "High Value / NPS Booster", 7, 3),
+        PMApprovedAt: Now(),
+        PMNotes: txtPMNotes.Text
+    }
+);
+Notify("Client Feedback approved and impact level tagged!", NotificationType.Success);
+```
+
+---
+
+### B. Year-End Feedback Portfolio Export (User Self-Service)
+
+Employees apne saal bhar ke approved client feedbacks aur snapshots ek click mein export kar sakte hain (Performance Appraisals / Year-End Reviews ke liye).
+
+**PowerApps Collection Export Formula (`btnExportPortfolio.OnSelect`)**:
+```powerfx
+// 1. User ke approved feedbacks collect karein
+ClearCollect(
+    colUserPortfolio,
+    ShowColumns(
+        Filter(ClientFeedbacks, SubmittedBy = User().FullName && Status = "Approved"),
+        "SubmittedDate", "Category", "Description", "ImpactTier", "AttachmentName"
+    )
+);
+
+// 2. Power Automate Flow triggering PDF/Excel generation
+'GenerateFeedbackPortfolioFlow'.Run(
+    User().Email,
+    JSON(colUserPortfolio, JSONFormat.IndentFour)
+);
+Notify("Your Year-End Client Feedback Portfolio is being generated and sent to your email!", NotificationType.Information);
+```
+
+**Power Automate Flow Steps**:
+1. **Trigger**: PowerApps (V2)
+2. **Data Processing**: Parse JSON array of user feedbacks.
+3. **HTML Report Generation**: Create HTML Table template with KPMG styling.
+4. **Convert to PDF**: OneDrive / SharePoint HTML to PDF Action.
+5. **Send Email**: Attach PDF & original attachment snapshots -> Send to `User().Email`.
+
+---
+
+### C. PM "Share with Team via Outlook" Email Broadcast
+
+PMs received client feedbacks ko direct pre-configured Outlook Distribution Lists (DLs) aur team members ke saath share kar sakte hain.
+
+**PowerFx Formula for Outlook Broadcast (`btnShareWithTeam.OnSelect`)**:
+```powerfx
+// 1. Mark as Shared in SharePoint List
+Patch(
+    ClientFeedbacks,
+    GalleryFeedback.Selected,
+    {
+        IsShared: true,
+        ShareCount: Coalesce(GalleryFeedback.Selected.ShareCount, 0) + 1,
+        SharedAt: Now()
+    }
+);
+
+// 2. Direct Launch Outlook Compose Window
+Launch(
+    "mailto:" & EncodeUrl(GalleryFeedback.Selected.NomineeEmail) & 
+    "?cc=" & EncodeUrl("UK-DLStarGraphicsTeamGGN@KPMG.co.uk; UK-DLStarGraphicsTeamBLR@KPMG.co.uk; dkumaran@kpmg.com") &
+    "&subject=" & EncodeUrl(If(IsBlank(GalleryFeedback.Selected.Subject), "Client Appreciation Share: Kudos to " & GalleryFeedback.Selected.SubmittedBy, GalleryFeedback.Selected.Subject)) &
+    "&body=" & EncodeUrl(
+        "Hi " & GalleryFeedback.Selected.SubmittedBy & "," & Char(10) & Char(10) &
+        "Kudos on receiving great client appreciation! Sharing this with the team." & Char(10) & Char(10) &
+        "----------------------------------------" & Char(10) &
+        "Client Feedback Details:" & Char(10) &
+        GalleryFeedback.Selected.Description
+    )
+);
+
+Notify("Client Feedback shared with team via Outlook email!", NotificationType.Success);
+```
+
+---
+
 *Updated PowerApps Documentation — August 2026 Edition*
-*All SharePoint List Schemas, PowerFx Formulas, Font Tokens & Navigation Configurations Complete.*
+*All SharePoint List Schemas, PowerFx Formulas, Font Tokens, Navigation & Power Automate Email/Export Workflows Complete.*
 

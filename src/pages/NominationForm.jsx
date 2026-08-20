@@ -72,7 +72,7 @@ const NominationForm = () => {
             {formData.category === 'Process & Efficiency' && (
               <div className="form-group" style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
                 <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700' }}>
-                  Estimated Hours Saved per Week/Month
+                  Hours Saved per Week
                 </label>
                 <input 
                   type="number"

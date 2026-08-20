@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppContext } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Trophy, Globe, Users, TrendingUp, Medal, Zap, Clock } from 'lucide-react';
+import { Trophy, Globe, Users, TrendingUp, Medal, Zap, Clock, X, FileText } from 'lucide-react';
 
 const COLORS = ['#00338d', '#00c0ae', '#1e49e2', '#7213ea', '#fd349c'];
 
 const ExecutiveDashboard = () => {
   const { nominations, currentUser, getReporteesForPM, getEffectiveCategory, externalAwards, getEfficiencyStats } = useAppContext();
+  const [showHoursModal, setShowHoursModal] = useState(false);
 
   // Helper to get all nested reportees recursively
   const getHierarchyReportees = (leaderName) => {
@@ -117,15 +119,19 @@ const ExecutiveDashboard = () => {
         </div>
 
         {/* Card 2: Total Hours Saved */}
-        <div style={{
-          background: 'linear-gradient(145deg, rgba(0, 192, 174, 0.06), #ffffff)',
-          borderRadius: '16px', padding: '1.25rem 1.1rem',
-          border: '1px solid rgba(0, 192, 174, 0.3)',
-          borderTop: '4px solid #00c0ae',
-          boxShadow: '0 4px 15px -3px rgba(0, 192, 174, 0.08)',
-          position: 'relative', overflow: 'hidden',
-          transition: 'all 0.25s ease'
-        }}>
+        <div 
+          onClick={() => setShowHoursModal(true)}
+          style={{
+            background: 'linear-gradient(145deg, rgba(0, 192, 174, 0.06), #ffffff)',
+            borderRadius: '16px', padding: '1.25rem 1.1rem',
+            border: '1px solid rgba(0, 192, 174, 0.3)',
+            borderTop: '4px solid #00c0ae',
+            boxShadow: '0 4px 15px -3px rgba(0, 192, 174, 0.08)',
+            position: 'relative', overflow: 'hidden',
+            transition: 'all 0.25s ease', cursor: 'pointer'
+          }}
+          title="Click to view detailed breakdown of hours saved per employee & project"
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '12px',
@@ -134,15 +140,16 @@ const ExecutiveDashboard = () => {
             }}>
               <Clock size={20} />
             </div>
-            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae' }}>
-              Efficiency ROI
+            <span style={{ fontSize: '0.68rem', fontWeight: '700', padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              Efficiency ROI 🔍
             </span>
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: '800', fontFamily: "'Open Sans Condensed', sans-serif", color: '#00c0ae', lineHeight: 1.1 }}>
             {effStats.totalHours} hrs
           </div>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem' }}>
-            Total Hours Saved
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Total Hours Saved</span>
+            <span style={{ fontSize: '0.68rem', color: '#00c0ae', fontWeight: 600 }}>Click to Drill Down ➔</span>
           </div>
         </div>
 
@@ -387,6 +394,96 @@ const ExecutiveDashboard = () => {
 
       </div>
 
+      {/* Hours Saved Drill-Down Modal Overlay */}
+      {showHoursModal && createPortal(
+        <div 
+          onClick={() => setShowHoursModal(false)}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 99999,
+            background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            className="animate-scale-in"
+            style={{
+              width: '100%', maxWidth: '780px', background: 'var(--surface)',
+              padding: '1.75rem', borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)', border: '1px solid var(--border)',
+              display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: '85vh'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(0,192,174,0.12)', color: '#00c0ae', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary)', fontWeight: 800 }}>Efficiency Savings Drill-Down ({effStats.totalHours} hrs)</h3>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Detailed breakdown of hours saved per employee & project nomination</span>
+                </div>
+              </div>
+              <button className="btn btn-secondary" onClick={() => setShowHoursModal(false)} style={{ padding: '0.35rem 0.65rem', borderRadius: '8px' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Total Summary Strip */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', background: 'var(--surface-hover)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Total Hours Saved</span>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#00c0ae' }}>{effStats.totalHours} hrs / wk</div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Efficiency Projects</span>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{effStats.automationCount} Nominations</div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Top Contributor</span>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>{effStats.topContributors[0]?.name || 'N/A'} ({effStats.topContributors[0]?.hours || 0} hrs)</div>
+              </div>
+            </div>
+
+            {/* Breakdown Table */}
+            <div className="table-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '350px' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Employee Name</th>
+                    <th>Category</th>
+                    <th>Hours Saved</th>
+                    <th style={{ width: '45%' }}>Achievement / Impact Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nominations
+                    .filter(n => n.status === 'Approved' && getEffectiveCategory(n) === 'Process & Efficiency' && (parseInt(n.hoursSaved) || 0) > 0)
+                    .map(n => (
+                      <tr key={n.id}>
+                        <td style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--primary)' }}>{n.name}</td>
+                        <td>
+                          <span style={{ background: 'rgba(0,192,174,0.1)', color: '#00c0ae', border: '1px solid rgba(0,192,174,0.3)', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            ⚙️ Process & Efficiency
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 800, color: '#00c0ae', fontSize: '0.9rem' }}>{n.hoursSaved} hrs/wk</td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--text-main)' }}>{n.reason}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
+              <button className="btn btn-primary" onClick={() => setShowHoursModal(false)}>
+                Close Drill-Down
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

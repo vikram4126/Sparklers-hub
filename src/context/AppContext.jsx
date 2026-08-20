@@ -398,8 +398,8 @@ export const AppProvider = ({ children }) => {
     setFeedbacks(prev => [...prev, newFeedback]);
   };
 
-  const approveFeedback = (id) => {
-    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'Approved', approvedAt: new Date().toISOString() } : f));
+  const approveFeedback = (id, impactTier = 'Standard Appreciation') => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'Approved', impactTier, approvedAt: new Date().toISOString() } : f));
   };
 
   const rejectFeedback = (id, reason) => {
@@ -408,6 +408,15 @@ export const AppProvider = ({ children }) => {
 
   const acknowledgeFeedback = (id) => {
     setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, acknowledged: true } : f));
+  };
+
+  const markFeedbackShared = (id) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { 
+      ...f, 
+      isShared: true, 
+      shareCount: (f.shareCount || 0) + 1,
+      sharedAt: new Date().toISOString()
+    } : f));
   };
 
   const addExternalAward = (award) => {
@@ -569,6 +578,7 @@ export const AppProvider = ({ children }) => {
       addFeedback,
       approveFeedback,
       rejectFeedback,
+      markFeedbackShared,
       acknowledgeFeedback
     }}>
       {children}

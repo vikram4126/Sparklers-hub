@@ -34,11 +34,13 @@ const Layout = () => {
         </div>
 
         <div className="sidebar-nav">
-          {/* My Dashboard — Personal badge & Leaderboard */}
-          <NavLink to="/my-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            <UserCircle size={20} />
-            My Dashboard
-          </NavLink>
+          {/* My Dashboard — Personal badge & Leaderboard (Hidden for AD/Director) */}
+          {currentRole !== 'Director' && (
+            <NavLink to="/my-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <UserCircle size={20} />
+              My Dashboard
+            </NavLink>
+          )}
 
           {/* Leadership Board — for PM (TLs/AMs), Managers (Leadership) and Directors */}
           {['PM', 'Leadership', 'Director'].includes(currentRole) && (
@@ -48,7 +50,7 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Sparklers — Self nominate & history */}
+          {/* Sparklers — Self nominate & history (Hidden for AD/Director) */}
           {['User', 'PM', 'Admin'].includes(currentRole) && (
             <NavLink to="/sparklers" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Zap size={20} />
@@ -56,7 +58,7 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Others — Log external awards & history */}
+          {/* Others — Log external awards & history (Hidden for AD/Director) */}
           {['User', 'PM', 'Admin'].includes(currentRole) && (
             <NavLink to="/others" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Award size={20} />
@@ -64,8 +66,8 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Feedback — Log client feedback & history */}
-          {currentRole !== 'Admin' && (
+          {/* Feedback — Log client feedback & history (Hidden for AD/Director & Admin) */}
+          {!['Admin', 'Director'].includes(currentRole) && (
             <NavLink to="/feedback" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <MessageSquare size={20} />
               Feedback

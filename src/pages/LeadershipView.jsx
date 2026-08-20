@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Trophy, Users, ShieldAlert, Medal, Clock, Zap, UserCircle } from 'lucide-react';
+import { Trophy, Users, ShieldAlert, Medal, Clock, Zap, UserCircle, Plus } from 'lucide-react';
 
 const COLORS = ['#00338d', '#00c0ae', '#1e49e2', '#7213ea', '#fd349c'];
 
@@ -87,66 +87,44 @@ const LeadershipView = () => {
           </p>
         </div>
         <button 
-          className="btn btn-secondary" 
-          onClick={() => navigate('/my-dashboard')}
-          style={{ fontSize: '0.85rem', gap: '0.45rem', padding: '0.5rem 1rem', borderRadius: '10px' }}
+          className="btn btn-primary" 
+          onClick={() => navigate('/nominate-team')}
         >
-          <UserCircle size={18} color="var(--primary)" /> View My Personal Badge & Portfolio
+          <Plus size={18} />
+          Nominate Team Member
         </button>
       </div>
 
-      {/* Stats Summary Row — Ultra-Creative Modern Glassmorphism Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(215px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+      {/* Stats Summary Row — Single Fixed 5-Column Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.75rem', marginBottom: '1.75rem' }}>
         
         {/* Card 1: Sparklers Awards */}
         <div 
           style={{
             background: 'linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%)',
-            borderRadius: '22px', padding: '1.4rem 1.25rem',
+            borderRadius: '16px', padding: '1rem 0.9rem',
             border: '1px solid rgba(0, 51, 141, 0.15)',
-            boxShadow: '0 10px 25px -5px rgba(0, 51, 141, 0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 15px -3px rgba(0, 51, 141, 0.05)',
             position: 'relative', overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
+            transition: 'transform 0.2s ease', cursor: 'pointer'
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px) scale(1.015)';
-            e.currentTarget.style.boxShadow = '0 18px 35px -5px rgba(0, 51, 141, 0.15)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 51, 141, 0.06)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          {/* Watermark Icon */}
-          <Trophy size={110} style={{ position: 'absolute', right: '-15px', bottom: '-20px', opacity: 0.06, color: '#00338d', transform: 'rotate(-12deg)', pointerEvents: 'none' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '14px',
-              background: 'linear-gradient(135deg, #00338d 0%, #1e49e2 100%)',
-              color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 14px -2px rgba(0, 51, 141, 0.35)'
-            }}>
-              <Trophy size={22} color="#ffffff" />
+          <Trophy size={70} style={{ position: 'absolute', right: '-10px', bottom: '-15px', opacity: 0.05, color: '#00338d', transform: 'rotate(-10deg)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', zIndex: 1 }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #00338d 0%, #1e49e2 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Trophy size={16} color="#ffffff" />
             </div>
-            <span style={{
-              fontSize: '0.68rem', fontWeight: '800', padding: '0.25rem 0.7rem', borderRadius: '20px',
-              background: 'rgba(0, 51, 141, 0.08)', color: 'var(--primary)',
-              display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.03em'
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} />
+            <span style={{ fontSize: '0.62rem', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'rgba(0, 51, 141, 0.08)', color: 'var(--primary)' }}>
               Active
             </span>
           </div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '2.3rem', fontWeight: '900', color: 'var(--primary)', lineHeight: 1, letterSpacing: '-0.03em' }}>
+          <div style={{ zIndex: 1 }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: '900', color: 'var(--primary)', lineHeight: 1 }}>
               {managerStats.total}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '0.55rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '0.35rem' }}>
               Sparklers Awards
             </div>
           </div>
@@ -156,50 +134,30 @@ const LeadershipView = () => {
         <div 
           style={{
             background: 'linear-gradient(135deg, #ffffff 0%, #e6fffa 100%)',
-            borderRadius: '22px', padding: '1.4rem 1.25rem',
+            borderRadius: '16px', padding: '1rem 0.9rem',
             border: '1px solid rgba(0, 192, 174, 0.25)',
-            boxShadow: '0 10px 25px -5px rgba(0, 192, 174, 0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 15px -3px rgba(0, 192, 174, 0.05)',
             position: 'relative', overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
+            transition: 'transform 0.2s ease', cursor: 'pointer'
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px) scale(1.015)';
-            e.currentTarget.style.boxShadow = '0 18px 35px -5px rgba(0, 192, 174, 0.2)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 192, 174, 0.08)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          <Clock size={110} style={{ position: 'absolute', right: '-15px', bottom: '-20px', opacity: 0.07, color: '#00c0ae', transform: 'rotate(-12deg)', pointerEvents: 'none' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '14px',
-              background: 'linear-gradient(135deg, #00c0ae 0%, #059669 100%)',
-              color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 14px -2px rgba(0, 192, 174, 0.35)'
-            }}>
-              <Clock size={22} color="#ffffff" />
+          <Clock size={70} style={{ position: 'absolute', right: '-10px', bottom: '-15px', opacity: 0.06, color: '#00c0ae', transform: 'rotate(-10deg)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', zIndex: 1 }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #00c0ae 0%, #059669 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={16} color="#ffffff" />
             </div>
-            <span style={{
-              fontSize: '0.68rem', fontWeight: '800', padding: '0.25rem 0.7rem', borderRadius: '20px',
-              background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae',
-              display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.03em'
-            }}>
-              Efficiency ROI
+            <span style={{ fontSize: '0.62rem', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'rgba(0, 192, 174, 0.12)', color: '#00c0ae' }}>
+              ROI
             </span>
           </div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '2.3rem', fontWeight: '900', color: '#00c0ae', lineHeight: 1, letterSpacing: '-0.03em' }}>
-              {managerStats.segmentHoursSaved} <span style={{ fontSize: '1.25rem', fontWeight: '800' }}>hrs</span>
+          <div style={{ zIndex: 1 }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: '900', color: '#00c0ae', lineHeight: 1 }}>
+              {managerStats.segmentHoursSaved} <span style={{ fontSize: '1rem', fontWeight: '800' }}>hrs</span>
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '0.55rem' }}>
-              Segment Hours Saved
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '0.35rem' }}>
+              Hours Saved
             </div>
           </div>
         </div>
@@ -208,49 +166,29 @@ const LeadershipView = () => {
         <div 
           style={{
             background: 'linear-gradient(135deg, #ffffff 0%, #f3e8ff 100%)',
-            borderRadius: '22px', padding: '1.4rem 1.25rem',
+            borderRadius: '16px', padding: '1rem 0.9rem',
             border: '1px solid rgba(114, 19, 234, 0.18)',
-            boxShadow: '0 10px 25px -5px rgba(114, 19, 234, 0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 15px -3px rgba(114, 19, 234, 0.05)',
             position: 'relative', overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
+            transition: 'transform 0.2s ease', cursor: 'pointer'
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px) scale(1.015)';
-            e.currentTarget.style.boxShadow = '0 18px 35px -5px rgba(114, 19, 234, 0.18)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(114, 19, 234, 0.06)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          <Medal size={110} style={{ position: 'absolute', right: '-15px', bottom: '-20px', opacity: 0.07, color: '#7213ea', transform: 'rotate(-12deg)', pointerEvents: 'none' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '14px',
-              background: 'linear-gradient(135deg, #7213ea 0%, #a855f7 100%)',
-              color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 14px -2px rgba(114, 19, 234, 0.35)'
-            }}>
-              <Medal size={22} color="#ffffff" />
+          <Medal size={70} style={{ position: 'absolute', right: '-10px', bottom: '-15px', opacity: 0.06, color: '#7213ea', transform: 'rotate(-10deg)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', zIndex: 1 }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #7213ea 0%, #a855f7 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Medal size={16} color="#ffffff" />
             </div>
-            <span style={{
-              fontSize: '0.68rem', fontWeight: '800', padding: '0.25rem 0.7rem', borderRadius: '20px',
-              background: 'rgba(114, 19, 234, 0.1)', color: 'var(--secondary)',
-              display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.03em'
-            }}>
+            <span style={{ fontSize: '0.62rem', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'rgba(114, 19, 234, 0.1)', color: 'var(--secondary)' }}>
               External
             </span>
           </div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '2.3rem', fontWeight: '900', color: 'var(--secondary)', lineHeight: 1, letterSpacing: '-0.03em' }}>
+          <div style={{ zIndex: 1 }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: '900', color: 'var(--secondary)', lineHeight: 1 }}>
               {managerStats.extTotal}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '0.55rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '0.35rem' }}>
               External Awards
             </div>
           </div>
@@ -260,58 +198,30 @@ const LeadershipView = () => {
         <div 
           onClick={() => navigate('/pm-approvals')}
           style={{
-            background: managerStats.pending > 0
-              ? 'linear-gradient(135deg, #ffffff 0%, #fff7ed 100%)'
-              : 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
-            borderRadius: '22px', padding: '1.4rem 1.25rem',
+            background: managerStats.pending > 0 ? 'linear-gradient(135deg, #ffffff 0%, #fff7ed 100%)' : 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+            borderRadius: '16px', padding: '1rem 0.9rem',
             border: `1px solid ${managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(34, 197, 94, 0.25)'}`,
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.05)',
             position: 'relative', overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
+            transition: 'transform 0.2s ease', cursor: 'pointer'
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px) scale(1.015)';
-            e.currentTarget.style.boxShadow = managerStats.pending > 0
-              ? '0 18px 35px -5px rgba(245, 158, 11, 0.2)'
-              : '0 18px 35px -5px rgba(34, 197, 94, 0.18)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          <ShieldAlert size={110} style={{ position: 'absolute', right: '-15px', bottom: '-20px', opacity: 0.07, color: managerStats.pending > 0 ? '#f59e0b' : '#22c55e', transform: 'rotate(-12deg)', pointerEvents: 'none' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '14px',
-              background: managerStats.pending > 0
-                ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-                : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-              color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: managerStats.pending > 0 ? '0 6px 14px -2px rgba(245, 158, 11, 0.35)' : '0 6px 14px -2px rgba(34, 197, 94, 0.35)'
-            }}>
-              <ShieldAlert size={22} color="#ffffff" />
+          <ShieldAlert size={70} style={{ position: 'absolute', right: '-10px', bottom: '-15px', opacity: 0.06, color: managerStats.pending > 0 ? '#f59e0b' : '#22c55e', transform: 'rotate(-10deg)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', zIndex: 1 }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: managerStats.pending > 0 ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldAlert size={16} color="#ffffff" />
             </div>
-            <span style={{
-              fontSize: '0.68rem', fontWeight: '800', padding: '0.25rem 0.7rem', borderRadius: '20px',
-              background: managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.12)',
-              color: managerStats.pending > 0 ? '#d97706' : '#16a34a',
-              display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.03em'
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: managerStats.pending > 0 ? '#d97706' : '#16a34a', display: 'inline-block' }} />
-              {managerStats.pending > 0 ? 'Action Needed' : 'All Clear'}
+            <span style={{ fontSize: '0.62rem', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '12px', background: managerStats.pending > 0 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.12)', color: managerStats.pending > 0 ? '#d97706' : '#16a34a' }}>
+              {managerStats.pending > 0 ? 'Pending' : 'Clear'}
             </span>
           </div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '2.3rem', fontWeight: '900', color: managerStats.pending > 0 ? '#d97706' : '#16a34a', lineHeight: 1, letterSpacing: '-0.03em' }}>
+          <div style={{ zIndex: 1 }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: '900', color: managerStats.pending > 0 ? '#d97706' : '#16a34a', lineHeight: 1 }}>
               {managerStats.pending}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '0.55rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '0.35rem' }}>
               Pending Approvals
             </div>
           </div>
@@ -320,54 +230,35 @@ const LeadershipView = () => {
         {/* Card 5: Top Reporting Team */}
         <div 
           style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%)',
-            borderRadius: '22px', padding: '1.4rem 1.25rem',
+            background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)',
+            borderRadius: '16px', padding: '1rem 0.9rem',
             border: '1px solid rgba(30, 73, 226, 0.2)',
-            boxShadow: '0 10px 25px -5px rgba(30, 73, 226, 0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 15px -3px rgba(30, 73, 226, 0.05)',
             position: 'relative', overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
+            transition: 'transform 0.2s ease', cursor: 'pointer'
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px) scale(1.015)';
-            e.currentTarget.style.boxShadow = '0 18px 35px -5px rgba(30, 73, 226, 0.18)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(30, 73, 226, 0.06)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          <Users size={110} style={{ position: 'absolute', right: '-15px', bottom: '-20px', opacity: 0.07, color: '#1e49e2', transform: 'rotate(-12deg)', pointerEvents: 'none' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '44px', height: '44px', borderRadius: '14px',
-              background: 'linear-gradient(135deg, #1e49e2 0%, #3b82f6 100%)',
-              color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 14px -2px rgba(30, 73, 226, 0.35)'
-            }}>
-              <Users size={22} color="#ffffff" />
+          <Users size={70} style={{ position: 'absolute', right: '-10px', bottom: '-15px', opacity: 0.06, color: '#1e49e2', transform: 'rotate(-10deg)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', zIndex: 1 }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #1e49e2 0%, #3b82f6 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Users size={16} color="#ffffff" />
             </div>
-            <span style={{
-              fontSize: '0.68rem', fontWeight: '800', padding: '0.25rem 0.7rem', borderRadius: '20px',
-              background: 'rgba(30, 73, 226, 0.12)', color: '#1e49e2',
-              display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.03em'
-            }}>
+            <span style={{ fontSize: '0.62rem', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'rgba(30, 73, 226, 0.1)', color: '#1e49e2' }}>
               #1 Team
             </span>
           </div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '1.65rem', fontWeight: '900', color: '#1e49e2', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.02em' }}>
-              {managerStats.topPerformer ? `${managerStats.topPerformer[0]}` : '—'}
+          <div style={{ zIndex: 1 }}>
+            <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#1e49e2', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {managerStats.topPerformer ? managerStats.topPerformer[0] : '—'}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '0.55rem' }}>
-              {managerStats.topPerformer ? `${managerStats.topPerformer[1]} Wins · Top Team` : 'Top Reporting Team'}
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '0.35rem' }}>
+              {managerStats.topPerformer ? `${managerStats.topPerformer[1]} wins • Top Team` : 'Top Team'}
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Row for Team Performance Breakdown */}

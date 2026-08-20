@@ -1,31 +1,19 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppContext, CATEGORIES } from '../context/AppContext';
-import { Check, X, Search, Award, Star, MessageSquare, Send, Users, Filter, CheckCircle2, ShieldCheck, Clock } from 'lucide-react';
+import { Check, X, Search, Award, Star, MessageSquare, Send, Users, Filter, CheckCircle2, ShieldCheck, Clock, Share2, Eye, Paperclip, FileText } from 'lucide-react';
 
 const PMApprovals = () => {
   const { 
     nominations, addNomination, pmApprove, rejectNomination, currentUser, currentRole, getReporteesForPM,
     externalAwards, approveExternalAward, rejectExternalAward,
-    feedbacks, approveFeedback, rejectFeedback 
+    feedbacks, approveFeedback, rejectFeedback, markFeedbackShared
   } = useAppContext();
 
   const myReportees = getReporteesForPM(currentUser) || [];
 
-  // Helper to get all nested reportees in hierarchy chain
-  const getHierarchyReportees = (leaderName) => {
-    let reportees = [];
-    const direct = getReporteesForPM(leaderName) || [];
-    reportees.push(...direct);
-    direct.forEach(sub => {
-      reportees.push(...getHierarchyReportees(sub));
-    });
-    return Array.from(new Set(reportees));
-  };
-
-  const allTeamMembers = Array.from(new Set([
-    ...myReportees,
-    ...getHierarchyReportees(currentUser)
-  ]));
+  // Strictly 1st-level direct reportees only (no nested reportees of reportees)
+  const allTeamMembers = myReportees;
 
   // Left Form State
   const [formData, setFormData] = useState({ name: '', category: 'Process & Efficiency', reason: '', hoursSaved: '' });
@@ -42,6 +30,7 @@ const PMApprovals = () => {
   const [approveModal, setApproveModal] = useState({ open: false, nom: null, pmCategory: '', pmReason: '' });
   const [rejectModal, setRejectModal] = useState({ open: false, id: null, reason: '' });
   const [extRejectModal, setExtRejectModal] = useState({ open: false, id: null, reason: '' });
+  const [viewFeedbackModal, setViewFeedbackModal] = useState({ open: false, fb: null });
 
   // Handle Form Submit
   const handleNominateSubmit = (e) => {
@@ -201,6 +190,82 @@ const PMApprovals = () => {
       </div>
     );
   }
+  /* ── View Feedback Modal Overlay ───────────────────────── */
+  const renderViewFeedbackModal = () => {
+    if (!viewFeedbackModal.open || !viewFeedbackModal.fb) return null;
+    const fb = viewFeedbackModal.fb;
+    return createPortal(
+      <div 
+        onClick={() => setViewFeedbackModal({ open: false, fb: null })}
+        style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 99999,
+          background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+        }}
+      >
+        <div 
+          onClick={e => e.stopPropagation()}
+          className="animate-scale-in"
+          style={{
+            width: '100%', maxWidth: '640px', background: 'var(--surface)',
+            padding: '1.75rem', borderRadius: '20px',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)', border: '1px solid var(--border)',
+            display: 'flex', flexDirection: 'column', gap: '1.25rem'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(0,51,141,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileText size={20} color="var(--primary)" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>Client Feedback Details</h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Review original client appreciation email</span>
+              </div>
+            </div>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setViewFeedbackModal({ open: false, fb: null })} 
+              style={{ padding: '0.35rem 0.65rem', borderRadius: '8px' }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div style={{ background: 'var(--surface-hover)', padding: '0.85rem 1rem', borderRadius: '12px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', border: '1px solid var(--border)' }}>
+            <div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Submitted By</span>
+              <strong style={{ fontSize: '0.95rem', color: 'var(--primary)' }}>{fb.submittedBy}</strong>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Date</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{new Date(fb.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Attachment</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--primary)' }}>{fb.attachmentName || (fb.hasAttachment ? '📎 .msg file attached' : 'None')}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block' }}>
+              ORIGINAL CLIENT EMAIL CONTENT
+            </label>
+            <div style={{ background: 'var(--surface-hover)', border: '1px solid var(--border)', padding: '1rem', borderRadius: '12px', fontSize: '0.88rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '240px', overflowY: 'auto' }}>
+              {fb.description}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+            <button className="btn btn-primary" onClick={() => setViewFeedbackModal({ open: false, fb: null })} style={{ padding: '0.5rem 1.25rem' }}>
+              Close Preview
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
@@ -281,7 +346,7 @@ const PMApprovals = () => {
             {formData.category === 'Process & Efficiency' && (
               <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
                 <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.82rem', marginBottom: '0.3rem' }}>
-                  Hours Saved per Week/Month
+                  Hours Saved per Week
                 </label>
                 <input 
                   type="number"
@@ -293,9 +358,6 @@ const PMApprovals = () => {
                   onChange={(e) => setFormData({...formData, hoursSaved: e.target.value})}
                   style={{ width: '100%', fontSize: '0.875rem' }}
                 />
-                <small style={{ display: 'block', marginTop: '0.3rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                  Feeds into leadership Automation Leaderboard.
-                </small>
               </div>
             )}
 
@@ -379,9 +441,9 @@ const PMApprovals = () => {
             >
               <MessageSquare size={16} />
               Client Feedbacks
-              {(feedbacks || []).filter(f => (f.pm === currentUser || f.to === currentUser || myReportees.includes(f.submittedBy)) && f.status === 'Pending').length > 0 && (
+              {(feedbacks || []).filter(f => (f.to === currentUser || myReportees.includes(f.submittedBy)) && f.status === 'Pending').length > 0 && (
                 <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '999px', padding: '0.1rem 0.45rem', fontSize: '0.72rem' }}>
-                  {(feedbacks || []).filter(f => (f.pm === currentUser || f.to === currentUser || myReportees.includes(f.submittedBy)) && f.status === 'Pending').length}
+                  {(feedbacks || []).filter(f => (f.to === currentUser || myReportees.includes(f.submittedBy)) && f.status === 'Pending').length}
                 </span>
               )}
             </button>
@@ -598,7 +660,10 @@ const PMApprovals = () => {
 
           {/* ── TAB 3: CLIENT FEEDBACKS ── */}
           {activeTab === 'feedbacks' && (() => {
-            const myTeamFeedbacks = (feedbacks || []).filter(f => f.pm === currentUser || f.to === currentUser || myReportees.includes(f.submittedBy) || myReportees.includes(f.to));
+            const myTeamFeedbacks = (feedbacks || []).filter(f => 
+              myReportees.includes(f.submittedBy) || 
+              f.to === currentUser
+            );
             const pendingFbs = myTeamFeedbacks.filter(f => (f.status || 'Approved') === 'Pending');
             const doneFbs = myTeamFeedbacks.filter(f => (f.status || 'Approved') !== 'Pending');
 
@@ -615,16 +680,55 @@ const PMApprovals = () => {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
                     {pendingFbs.map(fb => (
-                      <div key={fb.id} style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div key={fb.id} style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <div>
-                          <strong style={{ fontSize: '0.88rem' }}>{fb.category}</strong>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{fb.submittedBy} · {fb.description.length > 50 ? fb.description.slice(0, 50) + '…' : fb.description}</div>
+                          <strong style={{ fontSize: '0.88rem' }}>{fb.submittedBy}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{fb.description.length > 40 ? fb.description.slice(0, 40) + '…' : fb.description}</div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.35rem' }}>
-                          <button className="btn btn-success" style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title="Approve Feedback" onClick={() => approveFeedback(fb.id)}>
-                            <Check size={15} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <button
+                            className="btn btn-secondary"
+                            style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 600 }}
+                            title="View Full Client Email & Details"
+                            onClick={() => setViewFeedbackModal({ open: true, fb })}
+                          >
+                            <Eye size={14} color="var(--primary)" /> View Details
                           </button>
-                          <button className="btn btn-danger" style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title="Reject Feedback" onClick={() => rejectFeedback(fb.id, 'PM Rejected')}>
+                          <select
+                            className="form-select"
+                            defaultValue="Standard Appreciation"
+                            id={`impact-tier-${fb.id}`}
+                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '6px', width: 'auto' }}
+                          >
+                            <option value="Standard Appreciation">🟢 Standard</option>
+                            <option value="High Value / NPS Booster">🔵 High Value</option>
+                            <option value="Game Changer / Account Growth">⭐ Strategic</option>
+                          </select>
+                          <button
+                            className="btn btn-success"
+                            style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}
+                            title="Approve and set impact tier"
+                            onClick={() => {
+                              const sel = document.getElementById(`impact-tier-${fb.id}`);
+                              const val = sel ? sel.value : 'Standard Appreciation';
+                              approveFeedback(fb.id, val);
+                            }}
+                          >
+                            <Check size={14} /> Approve & Tag
+                          </button>
+                          <button 
+                            className="btn btn-danger" 
+                            style={{ padding: '0.35rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} 
+                            title="Reject Feedback" 
+                            onClick={() => {
+                              const reason = window.prompt("Please provide a reason for rejecting this feedback (Mandatory):");
+                              if (!reason || !reason.trim()) {
+                                alert("Rejection reason is mandatory.");
+                                return;
+                              }
+                              rejectFeedback(fb.id, reason.trim());
+                            }}
+                          >
                             <X size={15} />
                           </button>
                         </div>
@@ -640,17 +744,60 @@ const PMApprovals = () => {
                   ) : (
                     <table>
                       <thead>
-                        <tr><th>Employee</th><th>Category</th><th>Impact</th><th>Status</th></tr>
+                        <tr><th>Employee</th><th>Impact Level</th><th>Status</th><th>Action</th></tr>
                       </thead>
                       <tbody>
-                        {doneFbs.map(fb => (
-                          <tr key={fb.id}>
-                            <td style={{ fontWeight: 600, fontSize: '0.85rem' }}>{fb.submittedBy}</td>
-                            <td style={{ fontSize: '0.85rem' }}>{fb.category}</td>
-                            <td style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary)' }}>{fb.impactScore ? `${fb.impactScore}/10` : '—'}</td>
-                            <td><span className={`badge badge-${(fb.status || 'Approved').toLowerCase()}`} style={{ fontSize: '0.75rem' }}>{fb.status || 'Approved'}</span></td>
-                          </tr>
-                        ))}
+                        {doneFbs.map(fb => {
+                          const tierLabel = fb.impactTier || (fb.impactScore >= 8 ? '⭐ Strategic' : fb.impactScore >= 5 ? '🔵 High Value' : '🟢 Standard');
+                          const tierBg = tierLabel.includes('Strategic') ? 'rgba(234, 179, 8, 0.12)' : tierLabel.includes('High') ? 'rgba(59, 130, 246, 0.12)' : 'rgba(34, 197, 94, 0.12)';
+                          const tierColor = tierLabel.includes('Strategic') ? '#ca8a04' : tierLabel.includes('High') ? '#2563eb' : '#16a34a';
+                          
+                          const handleShareWithTeam = () => {
+                            markFeedbackShared(fb.id);
+                            const nomineeEmail = `${fb.submittedBy.toLowerCase().replace(/\s+/g, '.')}@kpmg.com`;
+                            const ccEmails = "UK-DLStarGraphicsTeamGGN@KPMG.co.uk; UK-DLStarGraphicsTeamBLR@KPMG.co.uk; dkumaran@kpmg.com";
+                            const subject = fb.subject?.trim() ? fb.subject.trim() : `Client Appreciation Share: Kudos to ${fb.submittedBy}`;
+                            const body = `Hi ${fb.submittedBy},\n\nKudos on receiving great client appreciation! Sharing this with the team.\n\n----------------------------------------\nClient Feedback Details:\n${fb.description}\n\nImpact Level: ${tierLabel}`;
+                            
+                            const mailtoUrl = `mailto:${encodeURIComponent(nomineeEmail)}?cc=${encodeURIComponent(ccEmails)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                            window.location.href = mailtoUrl;
+                          };
+
+                          const isShared = fb.isShared || fb.shareCount > 0;
+
+                          return (
+                            <tr key={fb.id}>
+                              <td style={{ fontWeight: 600, fontSize: '0.85rem' }}>{fb.submittedBy}</td>
+                              <td>
+                                <span style={{ background: tierBg, color: tierColor, fontSize: '0.72rem', fontWeight: '700', padding: '0.15rem 0.5rem', borderRadius: '6px', display: 'inline-block' }}>
+                                  {tierLabel}
+                                </span>
+                              </td>
+                              <td><span className={`badge badge-${(fb.status || 'Approved').toLowerCase()}`} style={{ fontSize: '0.75rem' }}>{fb.status || 'Approved'}</span></td>
+                              <td>
+                                {isShared ? (
+                                  <span 
+                                    style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.2rem 0.55rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                                    title={`Shared with team ${fb.shareCount || 1} time(s)`}
+                                  >
+                                    <CheckCircle2 size={12} color="#15803d" />
+                                    Shared {fb.shareCount > 1 ? `(${fb.shareCount})` : ''}
+                                  </span>
+                                ) : (
+                                  <button
+                                    className="btn btn-secondary"
+                                    onClick={handleShareWithTeam}
+                                    style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}
+                                    title="Share this client feedback with team via Outlook"
+                                  >
+                                    <Share2 size={13} color="var(--primary)" />
+                                    Share with Team
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   )}
@@ -662,6 +809,7 @@ const PMApprovals = () => {
         </div>
 
       </div>
+      {renderViewFeedbackModal()}
     </div>
   );
 };
