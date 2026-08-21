@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* KPMG Brand Colors */
-  --primary: #00338d;
-  --primary-hover: #1e49e2;
-  --secondary: #7213ea;
-  --accent: #fd349c;
+  /* KPMG Corporate Brand Colors */
+  --primary: #00338d;        /* KPMG Navy Blue */
+  --primary-hover: #1e49e2;  /* KPMG Cobalt Blue */
+  --secondary: #7213ea;      /* Royal Purple */
+  --accent: #00c0ae;         /* Efficiency Teal */
   
-  /* Light Theme Colors */
-  --bg-color: #f8fafc;
+  /* Modern KPMG Clean Light Background */
+  --bg-color: #f1f5f9;
   --surface: #ffffff;
-  --surface-hover: #f1f5f9;
+  --surface-hover: #f8fafc;
   --text-main: #0f172a;
   --text-muted: #475569;
   --border: #e2e8f0;
   
-  --success: #00c0ae; /* Secondary Green from KPMG */
+  --success: #059669;
   --danger: #ef4444;
-  --warning: #f59e0b;
+  --warning: #d97706;
 }
 
 * {
@@ -35,22 +35,19 @@ body {
   min-height: 100vh;
 }
 
-/* Glassmorphism utility */
+/* KPMG Clean Card Styling (Replacing transparent blurry glass with crisp white enterprise cards) */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
 /* Typography */

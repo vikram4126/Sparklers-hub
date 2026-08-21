@@ -83,7 +83,7 @@ const SelfNominate = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem', overflow: 'hidden' }}>
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -101,19 +101,69 @@ const SelfNominate = () => {
         </div>
       )}
 
-      {/* Main Side-by-Side Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+      {/* TOP ROW: 3 Crisp KPMG Metric Banners (Matching Image Layout - Clean, No Left Border) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', flexShrink: 0 }}>
         
-        {/* LEFT COLUMN: Self-Nomination Form */}
-        <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
-            <Zap size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Self Nomination</h3>
+        {/* Metric 1: Total Won */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              TOTAL WON
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#00338d', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {approvedCount}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0, 51, 141, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Trophy size={20} color="#00338d" />
+          </div>
+        </div>
+
+        {/* Metric 2: Pending Review */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              PENDING REVIEW
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#1e49e2', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {pendingCount}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(30, 73, 226, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={20} color="#1e49e2" />
+          </div>
+        </div>
+
+        {/* Metric 3: Hours Saved (ROI) */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              HOURS SAVED (ROI)
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#7213ea', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {totalHours}h
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(114, 19, 234, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={20} color="#7213ea" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* BOTTOM ROW: Self Nomination Form Card (Left) + Full History Table (Right) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '1.25rem', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        
+        {/* LEFT CARD: Compact Self Nomination Form */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+            <Zap size={18} color="#00338d" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Self Nomination</h3>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+              <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>
                 Category <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <select
@@ -131,8 +181,8 @@ const SelfNominate = () => {
             </div>
 
             {category === 'Process & Efficiency' && (
-              <div style={{ background: 'rgba(0, 192, 174, 0.08)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(0, 192, 174, 0.3)' }}>
-                <label className="form-label" style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.82rem', marginBottom: '0.3rem' }}>
+              <div>
+                <label className="form-label" style={{ color: '#00c0ae', fontWeight: '700', fontSize: '0.82rem' }}>
                   Hours Saved per Week
                 </label>
                 <input
@@ -149,82 +199,60 @@ const SelfNominate = () => {
             )}
 
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+              <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>
                 Why are you nominating yourself? <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <textarea
                 className="form-input"
-                rows="5"
+                rows="4"
                 value={reason}
                 onChange={e => { setReason(e.target.value); setError(''); }}
                 required
-                placeholder="Describe your achievement and impact..."
-                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem' }}
+                placeholder="Describe the impact and context of your achievement..."
+                style={{ width: '100%', resize: 'none', fontFamily: 'inherit', fontSize: '0.875rem' }}
               />
             </div>
 
             {error && (
-              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.5rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
                 {error}
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.75rem' }}>
-              <Send size={16} /> Submit to PM ({pm})
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', marginTop: 'auto', background: '#00338d', fontWeight: 700 }}>
+              <Send size={15} /> Submit Nomination ➢
             </button>
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Profile & History Table */}
-        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* RIGHT CARD: Full History Table (Only this card scrolls!) */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
           
-          {/* Profile Header & Summary Pills */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+          {/* Table Header & Filters */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.85rem', flexShrink: 0 }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>My Sparklers Profile</h3>
-              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Personal achievement ledger for {currentUser}</p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div style={{ background: 'rgba(0, 51, 141, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>WON</span>
-                <strong style={{ fontSize: '1.1rem', color: 'var(--primary)' }}>{approvedCount}</strong>
-              </div>
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
-                <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
-              </div>
-              {totalHours > 0 && (
-                <div style={{ background: 'rgba(0, 192, 174, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>HOURS SAVED</span>
-                  <strong style={{ fontSize: '1.1rem', color: '#00c0ae' }}>{totalHours}h</strong>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Filters Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem', fontWeight: 700 }}>
-              <Filter size={16} color="var(--primary)" />
-              <span>Filter Sparklers Profile:</span>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary)', fontWeight: 800 }}>Full Sparklers History & Status</h3>
+              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Track your past and current nominations</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <select
-                className="form-select"
-                value={fyFilter}
-                onChange={e => setFyFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
-              >
-                {fyOptions.map(fy => <option key={fy} value={fy}>{fy}</option>)}
-              </select>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <Filter size={14} color="var(--text-muted)" />
+                <select
+                  className="form-select"
+                  value={fyFilter}
+                  onChange={e => setFyFilter(e.target.value)}
+                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                >
+                  {fyOptions.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                </select>
+              </div>
 
               <select
                 className="form-select"
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+                style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
               >
                 <option value="All">All Categories</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -234,7 +262,7 @@ const SelfNominate = () => {
                 className="form-select"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+                style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
               >
                 <option value="All">All Statuses</option>
                 <option value="Approved">Approved</option>

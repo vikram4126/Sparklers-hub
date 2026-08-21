@@ -126,7 +126,7 @@ export default function Feedback() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem', overflow: 'hidden' }}>
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -157,9 +157,9 @@ export default function Feedback() {
             link.click();
             document.body.removeChild(link);
           }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', fontWeight: 600 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', fontWeight: 600, fontSize: '0.85rem' }}
         >
-          <Download size={16} color="var(--primary)" />
+          <Download size={15} color="var(--primary)" />
           Download Portfolio (CSV/Excel)
         </button>
       </div>
@@ -171,26 +171,76 @@ export default function Feedback() {
         </div>
       )}
 
-      {/* Main Side-by-Side Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+      {/* TOP ROW: 3 Crisp KPMG Metric Banners (Matching Image Layout - Clean, No Left Border) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', flexShrink: 0 }}>
         
-        {/* LEFT COLUMN: Submit Feedback Form */}
-        <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
-            <MessageSquare size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Submit Client Feedback</h3>
+        {/* Metric 1: Total Logged */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              TOTAL LOGGED
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#059669', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {myFeedbacks.length}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(5, 150, 105, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MessageSquare size={20} color="#059669" />
+          </div>
+        </div>
+
+        {/* Metric 2: Approved */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              APPROVED FEEDBACKS
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {approvedCount}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(37, 99, 235, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle2 size={20} color="#2563eb" />
+          </div>
+        </div>
+
+        {/* Metric 3: High Impact */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              HIGH IMPACT (NPS/GAME CHANGER)
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#9333ea', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {myFeedbacks.filter(f => (f.impactScore || 3) >= 7).length}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(147, 51, 234, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={20} color="#9333ea" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* BOTTOM ROW: Feedback Form Card (Left) + Full History Table (Right) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '1.25rem', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        
+        {/* LEFT CARD: Compact Submit Form */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+            <MessageSquare size={18} color="#00338d" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Submit Client Feedback</h3>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', flex: 1 }}>
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Outlook / Email Content <span style={{ color: 'var(--accent)' }}>*</span></span>
                 <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 400 }}>{form.description.length} chars</span>
               </label>
               <textarea
                 className="form-input"
-                rows="6"
-                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem', lineHeight: 1.5 }}
+                rows="4"
+                style={{ width: '100%', resize: 'none', fontFamily: 'inherit', fontSize: '0.85rem', lineHeight: 1.4 }}
                 placeholder="Paste the email or feedback received from client here..."
                 value={form.description}
                 onChange={e => {
@@ -201,168 +251,145 @@ export default function Feedback() {
               />
             </div>
 
-            {/* AI Analyze Action Bar */}
-            {aiEnabled ? (
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  disabled={isAnalyzing || !form.description.trim()}
-                  onClick={() => {
-                    if (!form.description.trim() || form.description.trim().length < 10) {
-                      return setError('Please paste client feedback text before running AI analysis.');
-                    }
-                    setIsAnalyzing(true);
-                    setError('');
-                    setTimeout(() => {
-                      const detectedCat = detectCategory(form.description);
-                      const detectedScore = calcImpactScore(form.description);
-                      let tier = 'Standard Appreciation';
-                      let desc = 'Client provided positive routine feedback.';
-                      if (detectedScore >= 8) {
-                        tier = 'Strategic Game Changer';
-                        desc = 'High-impact feedback indicating major process efficiency or account booster.';
-                      } else if (detectedScore >= 5) {
-                        tier = 'High Value / NPS Booster';
-                        desc = 'Strong client appreciation highlighting quality delivery and project satisfaction.';
-                      }
-                      setAiResult({ tier, score: detectedScore, category: detectedCat, reasoning: desc });
-                      setIsAnalyzing(false);
-                    }, 600);
-                  }}
-                  style={{
-                    flex: 1,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justify: 'center',
-                    gap: '0.4rem',
-                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12))',
-                    border: '1px solid rgba(168, 85, 247, 0.3)',
-                    color: '#6366f1',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    padding: '0.55rem 0.8rem'
-                  }}
+            {/* Form Controls & Attachment Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', alignItems: 'center' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 700 }}>Email File (.msg) <span style={{ color: 'var(--accent)' }}>*</span></label>
+                <div
+                  style={{ border: '1.5px dashed var(--border)', borderRadius: '6px', padding: '0.45rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Sparkles size={16} color="#8b5cf6" className={isAnalyzing ? 'animate-spin' : ''} />
-                  {isAnalyzing ? 'Analyzing Text with AI...' : 'Feedback AI (Analyze Impact)'}
-                </button>
+                  {form.fileName ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                      <Paperclip size={12} color="#00338d" />
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#00338d', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '90px' }}>{form.fileName}</span>
+                      <button type="button" onClick={e => { e.stopPropagation(); handleChange('fileName', ''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex' }}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                      <Paperclip size={12} style={{ marginBottom: '0.1rem' }} /> Attach <strong>.msg</strong>
+                    </div>
+                  )}
+                  <input type="file" accept=".msg" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
+                </div>
               </div>
-            ) : (
-              <div style={{ background: 'var(--surface-hover)', borderRadius: '8px', padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Sparkles size={14} /> AI Text Analyzer is currently toggled OFF by Administrator.
+
+              {/* AI Analyze Action */}
+              <div>
+                <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 700 }}>AI Analysis</label>
+                {aiEnabled ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={isAnalyzing || !form.description.trim()}
+                    onClick={() => {
+                      if (!form.description.trim() || form.description.trim().length < 10) {
+                        return setError('Please paste client feedback text before running AI analysis.');
+                      }
+                      setIsAnalyzing(true);
+                      setError('');
+                      setTimeout(() => {
+                        const detectedCat = detectCategory(form.description);
+                        const detectedScore = calcImpactScore(form.description);
+                        let tier = 'Standard Appreciation';
+                        let desc = 'Client provided positive routine feedback.';
+                        if (detectedScore >= 8) {
+                          tier = 'Strategic Game Changer';
+                          desc = 'High-impact feedback indicating major process efficiency or account booster.';
+                        } else if (detectedScore >= 5) {
+                          tier = 'High Value / NPS Booster';
+                          desc = 'Strong client appreciation highlighting quality delivery and project satisfaction.';
+                        }
+                        setAiResult({ tier, score: detectedScore, category: detectedCat, reasoning: desc });
+                        setIsAnalyzing(false);
+                      }, 600);
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justify: 'center',
+                      gap: '0.3rem',
+                      background: 'rgba(139, 92, 246, 0.08)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      color: '#7c3aed',
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      padding: '0.45rem'
+                    }}
+                  >
+                    <Sparkles size={13} color="#8b5cf6" className={isAnalyzing ? 'animate-spin' : ''} />
+                    {isAnalyzing ? 'Analyzing...' : 'AI Impact'}
+                  </button>
+                ) : (
+                  <div style={{ background: 'var(--surface-hover)', borderRadius: '6px', padding: '0.45rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    AI OFF
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* AI Live Output Card */}
             {aiResult && (
               <div style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.06))',
-                border: '1px solid rgba(168, 85, 247, 0.3)',
-                borderRadius: '10px',
-                padding: '0.85rem',
-                fontSize: '0.82rem'
+                background: 'rgba(124, 58, 237, 0.04)',
+                border: '1px solid rgba(124, 58, 237, 0.2)',
+                borderRadius: '6px',
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.78rem'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <Sparkles size={14} /> AI Impact Level:
+                    <Sparkles size={13} /> Impact: <strong>{aiResult.tier} ({aiResult.score}/10)</strong>
                   </span>
-                  <span style={{
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '12px',
-                    fontWeight: 800,
-                    fontSize: '0.75rem',
-                    background: aiResult.score >= 8 ? 'rgba(234, 179, 8, 0.18)' : aiResult.score >= 5 ? 'rgba(59, 130, 246, 0.18)' : 'rgba(34, 197, 94, 0.18)',
-                    color: aiResult.score >= 8 ? '#ca8a04' : aiResult.score >= 5 ? '#2563eb' : '#16a34a'
-                  }}>
-                    {aiResult.tier} ({aiResult.score}/10)
-                  </span>
-                </div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.4 }}>
-                  <strong>Category:</strong> {aiResult.category}<br />
-                  <strong>Reasoning:</strong> {aiResult.reasoning}
                 </div>
               </div>
             )}
 
-            <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
-                Outlook Email File (.msg format only) <span style={{ color: 'var(--accent)' }}>*</span>
-              </label>
-              <div
-                style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '0.85rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface-hover)' }}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {form.fileName ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <Paperclip size={14} color="var(--primary)" />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>{form.fileName}</span>
-                    <button type="button" onClick={e => { e.stopPropagation(); handleChange('fileName', ''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex' }}>
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                    <Paperclip size={16} style={{ marginBottom: '0.2rem' }} />
-                    <div>Drag & drop or click to attach <strong>.msg</strong> email file</div>
-                  </div>
-                )}
-                <input type="file" accept=".msg" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFile} />
-              </div>
-            </div>
-
             {error && (
-              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.5rem', color: '#dc2626', fontSize: '0.78rem' }}>
                 {error}
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.75rem' }}>
-              <Send size={16} /> Submit to PM ({pm})
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', marginTop: 'auto', background: '#00338d', fontWeight: 700 }}>
+              <Send size={15} /> Submit Feedback ➢
             </button>
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Profile & History Table */}
-        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* RIGHT CARD: Full History Table (Only this card scrolls!) */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
           
-          {/* Profile Header & Summary Pills */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+          {/* Table Header & Filters */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.85rem', flexShrink: 0 }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>My Client Feedback Profile</h3>
-              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Client appreciation record for {currentUser}</p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div style={{ background: 'rgba(5, 150, 105, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>LOGGED</span>
-                <strong style={{ fontSize: '1.1rem', color: '#059669' }}>{myFeedbacks.length}</strong>
-              </div>
-              <div style={{ background: 'rgba(5, 150, 105, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>APPROVED</span>
-                <strong style={{ fontSize: '1.1rem', color: '#059669' }}>{approvedCount}</strong>
-              </div>
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
-                <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem', fontWeight: 700 }}>
-              <Filter size={16} color="var(--primary)" />
-              <span>Filter Feedback Profile:</span>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary)', fontWeight: 800 }}>Full Client Feedback History</h3>
+              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Track past feedback and impact levels</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <Filter size={14} color="var(--text-muted)" />
+                <select
+                  className="form-select"
+                  value={categoryFilter}
+                  onChange={e => setCategoryFilter(e.target.value)}
+                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                >
+                  {categoryOptions.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
 
               <select
                 className="form-select"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+                style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
               >
                 <option value="All">All Statuses</option>
                 <option value="Approved">Approved</option>
@@ -373,7 +400,7 @@ export default function Feedback() {
           </div>
 
           {/* Scrollable Table Area */}
-          <div className="table-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '100%' }}>
+          <div className="table-container" style={{ flex: 1, overflowY: 'auto' }}>
             {filteredFeedbacks.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
                 <MessageSquare size={36} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />

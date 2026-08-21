@@ -49,102 +49,258 @@ Purpose: Internal employee recognition platform — employees weekly awards rece
 
 ---
 
-## 2. Data Model — SharePoint Lists
+## 2. Data Model — SharePoint Lists (Step-by-Step Creation Guide)
 
-### Table: Nominations
+Aapko SharePoint Site par kul **4 main Lists (Tables)** banani hain. Har list kaise banegi aur usme kya columns create karne hain, iska poora detail niche diya gaya hai:
 
-| Column Name   | Type                   | Description                                               |
-|---------------|------------------------|-----------------------------------------------------------|
-| ID            | Auto Number            | Primary key                                               |
-| NomineeName   | Text                   | Nominee ka name (e.g. "Parteek")                          |
-| Category      | Choice                 | User submission: Innovation, Team Player, Extra Mile, Customer Success |
-| Reason        | Multiline Text         | User original nomination reason                           |
-| Status        | Choice                 | Pending, PMApproved, Approved, Rejected                   |
-| SubmittedBy   | Choice                 | User, PM                                                  |
-| SubmittedDate | Date/Time              | Submission Timestamp                                      |
-| PMCategory    | Choice (Optional)      | PM's override category (leave blank if same as Category)  |
-| PMReason      | Multiline Text (Opt.)  | PM's additional comment/reason override                   |
-| AdminCategory | Choice (Optional)      | Admin's override category (leave blank to fallback)       |
-| AdminReason   | Multiline Text (Opt.)  | Admin's final comment/reason override                     |
-| RejectReason  | Multiline Text (Opt.)  | Rejection comments (if status is Rejected)                |
+---
 
-### Table: Users
+### List 1: `Nominations` (Weekly Awards & Recognition)
 
-| Column Name | Type    | Description                                |
-|-------------|---------|--------------------------------------------|
-| DisplayName | Text    | User ka naam                               |
-| Role        | Choice  | User, PM, Admin, Leadership                |
-| PMName      | Text    | User ka reporting PM ka naam               |
-| Department  | Choice  | CD, Digital, Design, Sales, Motion         |
+1. SharePoint Site par jayein -> Click **+ New** -> Select **List** -> Select **Blank list** -> Name: `Nominations`.
+2. **Columns Creation Steps**:
+   - `Title` (Default Column): Rename label to **NomineeName** (Single line of text).
+   - **Category** (Choice Column): Add options `Innovation`, `Process & Efficiency`, `Team Player`, `Extra Mile`, `Customer Success`.
+   - **Reason** (Multiple lines of text / Plain text).
+   - **Status** (Choice Column): Add options `Pending`, `PMApproved`, `Approved`, `Rejected`. Default value: `Pending`.
+   - **SubmittedBy** (Single line of text / Person): Submitter ka Name.
+   - **SubmittedDate** (Date and Time).
+   - **PMCategory** (Choice Column - Optional): Same choices as Category.
+   - **PMReason** (Multiple lines of text - Optional).
+   - **AdminCategory** (Choice Column - Optional): Same choices as Category.
+   - **AdminReason** (Multiple lines of text - Optional).
+   - **RejectReason** (Multiple lines of text - Optional).
+
+#### Example Sample Data Table for `Nominations`:
+
+| NomineeName | Category | Reason | Status | SubmittedBy | SubmittedDate | PMCategory | PMReason | AdminCategory | AdminReason | RejectReason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Parteek | Innovation | Built automation script | PMApproved | Parteek | 2026-08-15 | — | Great initiative | — | — | — |
+| Vikram | Extra Mile | Worked weekend for client release | Approved | Himanshu | 2026-08-14 | — | — | Customer Success | Outstanding commitment | — |
+| Sivani | Team Player | Mentored new joiner | Pending | Sivani | 2026-08-18 | — | — | — | — | — |
+
+---
+
+### List 2: `Users` (User Roles & Team Hierarchy)
+
+1. Click **+ New** -> Select **List** -> Select **Blank list** -> Name: `Users`.
+2. **Columns Creation Steps**:
+   - `Title` (Default Text column): Use for **DisplayName** (e.g. "Parteek").
+   - **Email** (Single line of text / Person): User ka Office 365 Email ID (`parteek@kpmg.com`). *Auto-login ke liye mandatory!*
+   - **Role** (Choice Column): Add options `User`, `TL`, `AM`, `Manager`, `AD`, `Director`, `Admin`.
+   - **PMName** (Single line of text): User ke reporting Manager/TL ka Name (`Abhineet`).
+   - **PMEmail** (Single line of text): Reporting Manager ka Email ID (`abhineet@kpmg.com`).
+   - **Department** (Choice Column): `CD`, `Digital`, `Design`, `Sales`, `Motion`, `Admin`.
+
+#### Example Data Table for `Users` List (Is tarah Data Enter karein):
+
+| Title (DisplayName) | Email | Role | PMName | PMEmail | Department |
+|---|---|---|---|---|---|
+| Parteek | parteek@kpmg.com | User | Abhineet | abhineet@kpmg.com | CD |
+| Shreya | shreya@kpmg.com | User | Abhineet | abhineet@kpmg.com | CD |
+| Ganash lal | ganash@kpmg.com | User | Abhineet | abhineet@kpmg.com | CD |
+| Vikram | vikram@kpmg.com | User | Himanshu | himanshu@kpmg.com | Digital |
+| Shantanu | shantanu@kpmg.com | User | Himanshu | himanshu@kpmg.com | Digital |
+| Sukhvindar | sukhvindar@kpmg.com | User | Himanshu | himanshu@kpmg.com | Digital |
+| Sivani | sivani@kpmg.com | User | Ameen | ameen@kpmg.com | Design |
+| Abhineet | abhineet@kpmg.com | TL | Monam | monam@kpmg.com | CD |
+| Himanshu | himanshu@kpmg.com | TL | Ses | ses@kpmg.com | Digital |
+| Ameen | ameen@kpmg.com | TL | Ses | ses@kpmg.com | Design |
+| Monam | monam@kpmg.com | AM | Ashok | ashok@kpmg.com | Sales |
+| Ses | ses@kpmg.com | AM | Sol | sol@kpmg.com | Digital |
+| Ashok | ashok@kpmg.com | Manager | Kumaran | kumaran@kpmg.com | Design |
+| Sol | sol@kpmg.com | Manager | Kumaran | kumaran@kpmg.com | Digital |
+| Kumaran | kumaran@kpmg.com | AD | Krishan | krishan@kpmg.com | Admin |
+| Krishan | krishan@kpmg.com | Director | — | — | Admin |
+| Avinash | avinash@kpmg.com | Admin | — | — | Admin |
+| Sola | sola@kpmg.com | Admin | — | — | Admin |
+
+---
+
+### List 3: `ProcessEfficiencies` (Hours Saved & Process Improvement Log)
+
+1. Click **+ New** -> **List** -> **Blank list** -> Name: `ProcessEfficiencies`.
+2. **Columns Creation Steps**:
+   - `Title`: Process / Tool Name (e.g. "PowerAutomate Invoice Parsing").
+   - **SubmittedBy**: Single line of text.
+   - **Department**: Choice (`CD`, `Digital`, `Design`, `Sales`, `Motion`).
+   - **HoursSaved**: Number Column (Decimal allowed).
+   - **Description**: Multiple lines of text.
+   - **Status**: Choice (`Pending`, `Approved`, `Rejected`).
+
+#### Example Sample Data Table for `ProcessEfficiencies`:
+
+| Title (Process Name) | SubmittedBy | Department | HoursSaved | Description | Status |
+|---|---|---|---|---|---|
+| Outlook Mail Parser Script | Parteek | CD | 15.5 | Automated daily report emails parsing | Approved |
+| Photoshop Action Batching | Sivani | Design | 8.0 | Batch resized 500 images automatically | Approved |
+| Sales Pipeline Macro | Rahul | Sales | 12.0 | Excel VBA macro for weekly pipeline | Pending |
+
+---
+
+### List 4: `ClientFeedbacks` (Outlook Client Appreciation Log & Impact AI)
+
+1. Click **+ New** -> **List** -> **Blank list** -> Name: `ClientFeedbacks`.
+2. **Columns Creation Steps**:
+   - `Title`: Email Subject / Headline (e.g. "Client Kudos for Q3 Launch").
+   - **SubmittedBy**: Single line of text.
+   - **NomineeEmail**: Single line of text.
+   - **Category**: Choice (`Client Experience`, `Process Improvement`, `Technical Excellence`, `Team Culture`, `General Appreciation`).
+   - **Description**: Multiple lines of text (Pasted Outlook email text).
+   - **AttachmentName**: Single line of text (`.msg` file name).
+   - **ImpactTier**: Choice (`Standard Appreciation`, `High Value / NPS Booster`, `Strategic Game Changer`).
+   - **ImpactScore**: Number (1 to 10).
+   - **Status**: Choice (`Pending`, `Approved`, `Rejected`).
+   - **IsShared**: Yes/No (Boolean).
+
+#### Example Sample Data Table for `ClientFeedbacks`:
+
+| Title | SubmittedBy | Category | ImpactTier | ImpactScore | Status | AttachmentName |
+|---|---|---|---|---|---|---|
+| Q3 Campaign Success | Vikram | Client Experience | High Value / NPS Booster | 7 | Approved | Client_Kudos.msg |
+| Escalation Resolved | Parteek | Technical Excellence | Strategic Game Changer | 10 | Approved | Appreciated.msg |
+
+---
 
 ---
 
 ## 3. Roles & User Mapping
 
-### Team Structure:
+Aap agar **SharePoint, Power Apps, aur Power Automate** mein naye hain, toh niche diye gaye step-by-step instructions follow karein. Yeh section batata hai ki SharePoint mein Users ki list kaise banegi aur Power Apps mein login hone wale user ko uski Role ke hisab se screen buttons kaise dikhenge.
 
-  PM: Abhineet (CD Department)
-    -- Parteek
-    -- Shreya
-    -- Ganash lal
+---
 
-  PM: Ses (Digital Department)
-    -- Vikram
-    -- Shantanu
-    -- Sukhvindar
+### Step 1: Users List Reference
 
-  PM: Himanshu (Design Department)
-    -- Sivani
+*(Note: `Users` list ka full creation guide, columns, aur sample data table **Section 2 -> List 2** mein upar define kar diya gaya hai. Aapko double mehnat karne ki zaroorat nahi hai — bas wahan di gayi `Users` list ko SharePoint par create karein.)*
 
-  AM: Monam (Sales Department)
-    -- Ameen
+---
 
-  Admin: Sola
-  Leadership: Kumaran
+### Step 2: Role-Based Access Matrix (PowerApps Button `Visible` & `OnSelect` Formulas Guide)
 
-### Role-Based Access Table:
+> [!NOTE]
+> ❌ **Yeh Table SharePoint Mein Nahi Banegi!** 
+> Yeh table batati hai ki **Power Apps Studio (Canvas App)** mein Sidebar ke Buttons ki **`Visible` property** (Hide/Show ke liye) aur **`OnSelect` property** (Screen navigate karne ke liye) mein kya formulas copy-paste karne hain.
 
-| Role       | My Dashboard | Leadership Board | Self-Nom | Nom Team | Winners | Team Approvals | Final Approvals | Design Gen |
-|------------|--------------|------------------|----------|----------|---------|----------------|-----------------|------------|
-| User       | YES          | NO               | YES      | NO       | YES     | NO             | NO              | NO         |
-| TL / AM    | NO           | YES              | YES      | YES      | YES     | YES            | NO              | NO         |
-| Manager    | NO           | YES              | NO       | YES      | YES     | YES            | NO              | NO         |
-| AD / Director | NO        | YES              | NO       | NO       | YES     | NO             | NO              | NO         |
-| Admin      | YES          | NO               | NO       | NO       | YES     | NO             | YES             | YES        |
+#### 📍 Power Apps Studio Mein Kaise Apply Karein (Step-by-Step):
+1. Power Apps Studio ([make.powerapps.com](https://make.powerapps.com)) khol kar apna Canvas App open karein.
+2. Left Tree View se Sidebar Menu ke Button ko select karein (e.g. `btnNavDashboard`).
+3. Top-Left Property Dropdown se:
+   - Choose **`Visible`** $\rightarrow$ Paste Formula from **Column 3 (`Visible` Property Formula)**.
+   - Choose **`OnSelect`** $\rightarrow$ Paste Formula from **Column 4 (`OnSelect` Property Formula)**.
 
-*Note: Manager, AD, and Director will never self-nominate. AD and Director will never nominate team members either. If a Manager nominates someone, it goes directly to Admin (bypassing the AD).*
+#### 🛠️ Complete Button Setup Table for PowerApps Studio:
 
-### 3.1 Multi-Role Handling (Auto-Login with Microsoft Entra ID)
+| Button ID / Name in PowerApps | Allowed Roles (Info) | `Visible` Property Formula *(Button Kab Dikhega?)* | `OnSelect` Property Formula *(Click Pe Kya Hoga?)* |
+|---|---|---|---|
+| **`btnNavDashboard`** | User, Admin | `varUserRole in ["User", "Admin"]` | `Navigate(scrDashboard)` |
+| **`btnNavLeadership`** | TL, AM, Manager, AD, Director | `varUserRole in ["TL", "AM", "Manager", "AD", "Director"]` | `Navigate(scrLeadershipBoard)` |
+| **`btnNavSelfNominate`** | User, TL, AM, Admin | `varUserRole in ["User", "TL", "AM", "Admin"]` | `Navigate(scrSelfNominate)` |
+| **`btnNavNominateTeam`** | TL, AM, Manager | `varUserRole in ["TL", "AM", "Manager"]` | `Navigate(scrNominateTeam)` |
+| **`btnNavWinners`** | All Roles | `true` | `Navigate(scrWinnersBoard)` |
+| **`btnNavTeamApprovals`** | TL, AM, Manager | `varUserRole in ["TL", "AM", "Manager"]` | `Navigate(scrTeamApprovals)` |
+| **`btnNavAdminApprovals`**| Admin | `varUserRole = "Admin"` | `Navigate(scrAdminApprovals)` |
+| **`btnNavDesignGen`** | Admin | `varUserRole = "Admin"` | `Navigate(scrDesignGenerator)` |
 
-Power Apps auto-detects the logged-in user via `User().Email`. Agar koi person (like Avinash) normal **User** bhi hai (apne awards log karne ke liye) aur **Admin** bhi hai (approvals ke liye), toh ise manage karne ke 2 tareeqe hain:
+#### 📌 [BLUEPRINT ONLY — INFORMATIONAL REFERENCE] Role-to-Screen Visual Matrix
 
-**Method 1: Hierarchy Access (Recommended)**
-Admin role ko top-tier maniye. Jab app load ho:
-`Set(varUserRole, LookUp(Users, Email = User().Email).Role);`
+> [!IMPORTANT]
+> **⚠️ INFORMATION ONLY (READ THIS FIRST):**
+> 1. ❌ **NOT a SharePoint List**: Is table ko SharePoint par bilkul nahi banana hai.
+> 2. ❌ **NOT PowerFx Code**: Is table ko PowerApps mein kisi formula ya property mein copy-paste nahi karna hai.
+> 3. ✅ **JUST A BLUEPRINT / VISUAL CHEATSHEET**: Yeh table sirf app ka visual blueprint hai taaki aapko ek nazar mein pata rahe ki kaunsi screen kis role ke liye allowed (✅ YES) ya blocked (❌ NO) hai.
 
-Phir navigation buttons ki `Visible` property ko array check ke through set karein taaki Admin ko User wale features bhi dikhein:
-- Home/My Dashboard Visible: `varUserRole in ["User", "Admin"]`
-- Leadership Board Visible: `varUserRole in ["PM", "Manager", "AD", "Director"]`
-- Self Nominate Button Visible: `varUserRole in ["User", "Admin", "PM"]` *(Manager, AD, Director cannot self nominate)*
-- Nominate Team Member Visible: `!IsBlank(Filter(Users, PMName = User().FullName)) And varUserRole exactin ["PM", "Manager"]`
-- Final Approvals Button Visible: `varUserRole = "Admin"`
+| Role | My Dashboard (`scrDashboard`) | Leadership Board (`scrLeadershipBoard`) | Self Nominate (`scrSelfNominate`) | Nominate Team (`scrNominateTeam`) | Winners Board (`scrWinnersBoard`) | Team Approvals (`scrTeamApprovals`) | Admin Approvals (`scrAdminApprovals`) | Design Gen (`scrDesignGenerator`) |
+|---|---|---|---|---|---|---|---|---|
+| **User** | ✅ YES | ❌ NO | ✅ YES | ❌ NO | ✅ YES | ❌ NO | ❌ NO | ❌ NO |
+| **TL / AM** | ❌ NO | ✅ YES | ✅ YES | ✅ YES | ✅ YES | ✅ YES | ❌ NO | ❌ NO |
+| **Manager** | ❌ NO | ✅ YES | ❌ NO | ✅ YES | ✅ YES | ✅ YES | ❌ NO | ❌ NO |
+| **AD / Director**| ❌ NO | ✅ YES | ❌ NO | ❌ NO | ✅ YES | ❌ NO | ❌ NO | ❌ NO |
+| **Admin** | ✅ YES | ❌ NO | ✅ YES | ❌ NO | ✅ YES | ❌ NO | ✅ YES | ✅ YES |
 
-Isse Avinash auto-login hote hi apna dashboard bhi dekh payega, self-nominate bhi kar payega, aur sidebar mein usko "Admin Approvals" ka button bhi dikhega.
+*Note: Manager, AD, aur Director kabhi self-nominate nahi karenge. AD aur Director kabhi team member nominate nahi karenge.*
 
-**Method 2: Multi-Select Role Column**
-SharePoint `Users` list mein `Role` column ko "Allow multiple selections" kar edin. Avinash ke aage "User" aur "Admin" dono tick karein.
-Phir PowerApps mein:
-- `Set(varUserRoles, LookUp(Users, Email = User().Email).Role);`
-- Home/My Dashboard Visible: `"User" in varUserRoles Or "Admin" in varUserRoles`
-- Leadership Board Visible: `"PM" in varUserRoles Or "Manager" in varUserRoles Or "AD" in varUserRoles Or "Director" in varUserRoles`
-- Self Nominate Visible: `"User" in varUserRoles Or "PM" in varUserRoles`
-- Admin Approvals Visible: `"Admin" in varUserRoles`
+---
 
-### 3.2 Leadership Approval Routing Logic
-Agar koi **Manager** apne aap ko ya kisi aur ko nominate karta hai, toh woh request AD/Director ke paas nahi jayegi. Woh seedha **Admin** ke paas jayegi (status `PMApproved` ya `AdminPending` ke sath). 
+### Step 3: Power Apps Mein Auto-Login & User Details Load Kaise Karein
 
-Power Apps formula for Nominate button:
-`If(varUserRole = "Manager", Patch(Nominations, Defaults(Nominations), {Status: "PMApproved"}), Patch(Nominations, Defaults(Nominations), {Status: "Pending"}))`
+Jab user Power Apps kholega, Power Apps Office 365 account se logged-in user ki Email ID auto-detect kar leta hai: `User().Email`.
+
+#### A. App Ke `App.OnStart` Property Mein Yeh Formula Likhein:
+1. Power Apps Studio mein Left Tree View mein **`App`** par click karein.
+2. Property Dropdown se **`OnStart`** select karein.
+3. Formula Bar mein yeh paste karein:
+
+```powerfx
+// 1. Current logged-in user ki email se SharePoint 'Users' list lookup karein
+Set(
+    varCurrentUserRecord,
+    LookUp(Users, Email = User().Email)
+);
+
+// 2. Variables store karein
+Set(varUserRole, varCurrentUserRecord.Role.Value);
+Set(varUserName, varCurrentUserRecord.Title);
+Set(varUserDepartment, varCurrentUserRecord.Department.Value);
+Set(varUserPMName, varCurrentUserRecord.PMName);
+```
+
+---
+
+### Step 4: Navigation Menu / Buttons Par Permissions (Visible Property Setup)
+
+Power Apps Canvas mein Sidebar ya Top Navigation ke Buttons ki **`Visible`** property par ye exact formulas likhein. Jiske paas permission nahi hogi, usko button screen par dikhega hi nahi!
+
+1. **"My Dashboard" Button (`btnNavDashboard`)**:
+   - `Visible` = `varUserRole in ["User", "Admin"]`
+2. **"Leadership Board" Button (`btnNavLeadership`)**:
+   - `Visible` = `varUserRole in ["TL", "AM", "Manager", "AD", "Director"]`
+3. **"Self Nominate" Button (`btnNavSelfNominate`)**:
+   - `Visible` = `varUserRole in ["User", "TL", "AM", "Admin"]` *(Manager/AD/Director ke liye false)*
+4. **"Nominate Team Member" Button (`btnNavNominateTeam`)**:
+   - `Visible` = `varUserRole in ["TL", "AM", "Manager"]`
+5. **"Winners Board" Button (`btnNavWinners`)**:
+   - `Visible` = `true` *(Sabhi roles dekh sakte hain)*
+6. **"Team Approvals (PM)" Button (`btnNavTeamApprovals`)**:
+   - `Visible` = `varUserRole in ["TL", "AM", "Manager"]`
+7. **"Final Approvals (Admin)" Button (`btnNavAdminApprovals`)**:
+   - `Visible` = `varUserRole = "Admin"`
+8. **"Design Generator" Button (`btnNavDesignGen`)**:
+   - `Visible` = `varUserRole = "Admin"`
+
+---
+
+### Step 5: Multi-Role Handling (Jaise Avinash = User + Admin)
+
+Agar koi banda (jaise Avinash) normal **User** bhi hai (apne awards submit karne ke liye) aur **Admin** bhi hai (approvals final karne ke liye):
+
+- **kaise karna hai**: Above Step 4 wale formulas mein `in ["User", "Admin"]` use kiya gaya hai.
+- **Result**: Avinash jab login karega, uski Role `"Admin"` milegi, lekin formulas ke karan usko **My Dashboard**, **Self Nominate**, **Winners Board**, **Final Approvals (Admin)**, aur **Design Generator** — saare buttons ek saath dikhenge!
+
+---
+
+### Step 6: Leadership Approval Routing Logic (Manager Nominations)
+
+Agar koi **Manager** (jaise Sol ya Ashok) kisi team member ko nominate karta hai, toh rule ye hai ki routing **AD/Director ko bypass karke seedha Admin ke paas jayegi**.
+
+**Nominate Form Submit Button (`btnSubmitNomination.OnSelect`) ka Formula**:
+```powerfx
+Patch(
+    Nominations,
+    Defaults(Nominations),
+    {
+        NomineeName: drpNominee.Selected.Title,
+        Category: drpCategory.Selected.Value,
+        Reason: txtReason.Text,
+        SubmittedBy: varUserName,
+        SubmittedDate: Now(),
+        // Manager nomination goes directly to Admin (PMApproved status)
+        Status: If(varUserRole = "Manager", "PMApproved", "Pending")
+    }
+);
+Notify("Nomination submitted successfully!", NotificationType.Success);
+Navigate(scrDashboard);
+```
 
 ---
 
@@ -1642,6 +1798,144 @@ Screen par live output Card `varAIAnalysisResult` ke according display hoga:
 
 ---
 
+## 26. Step-by-Step Guide: PowerApps Containers, Dynamic Galleries & Layout Design
+
+Aap agar PowerApps mein **Responsive Containers, Dynamic Galleries, Tabs, aur Form Layouts** pehle nahi banaye hain, toh is section ke simple step-by-step steps ko follow karein.
+
+---
+
+### A. Screen Layout Architecture (60% Form + 40% KPI Top Row & 100% Full-Width Bottom Table)
+
+Is modern layout ke liye PowerApps Studio mein **Flex Containers** use hote hain:
+
+```
+Screen (scrFeedback / scrSelfNominate / scrOtherAwards)
+  └── Main Vertical Container (Width: Parent.Width, Height: Parent.Height)
+        ├── Top Horizontal Container (Fill Portion: 0.45)
+        │     ├── Top Left Container (Width Portion: 6)  <-- 60% Width Form
+        │     └── Top Right Container (Width Portion: 4) <-- 40% Width KPI Summary Cards
+        └── Bottom Container (Fill Portion: 0.55)       <-- 100% Full Width Gallery / Table
+```
+
+#### Step-by-Step Container Creation in PowerApps Studio:
+1. Screen par click karein -> **Insert** menu -> Search **Container** -> Add **Vertical Container** (`conMainScreen`).
+   - Set `X` = 0, `Y` = 0, `Width` = `Parent.Width`, `Height` = `Parent.Height`.
+2. Inside `conMainScreen`: Add **Horizontal Container** (`conTopRow`).
+   - Set `Flexible Height` = `On`, `Fill Portions` = `4.5`.
+3. Inside `conTopRow`: Add 2 Containers:
+   - **Left Form Container (`conTopLeftForm`)**: Set `Flexible Width` = `On`, `Fill Portions` = `6` (60% width).
+   - **Right KPI Container (`conTopRightKPI`)**: Set `Flexible Width` = `On`, `Fill Portions` = `4` (40% width).
+4. Inside `conMainScreen`: Add a **Container (`conBottomTable`)**.
+   - Set `Flexible Height` = `On`, `Fill Portions` = `5.5`, `Width` = `Parent.Width` (100% full width).
+
+---
+
+### B. PowerApps Dynamic Gallery (Full-Width Profile Table) Kaise Banayein
+
+PowerApps mein Excel/HTML table jaise full-width data dikhane ke liye **Vertical Gallery** control use hota hai.
+
+#### Step-by-Step Gallery Creation:
+1. `conBottomTable` container ke andar click karein -> **Insert** -> **Blank Flexible Height Gallery** (`galFeedbackHistory`).
+2. Gallery ki **`Items` Property** mein formula likhein:
+   ```powerfx
+   // Logged-in user ke feedbacks filter aur sort karein
+   Sort(
+       Filter(ClientFeedbacks, SubmittedBy = varUserName),
+       SubmittedDate,
+       SortOrder.Descending
+   )
+   ```
+3. Gallery Template ke andar Labels insert karein:
+   - **Date Label (`lblDate`)**: `Text = Text(ThisItem.SubmittedDate, "dd-mmm-yyyy")`
+   - **Category Label (`lblCategory`)**: `Text = ThisItem.Category`
+   - **Description Label (`lblDescription`)**: `Text = ThisItem.Description` *(Set `AutoHeight` = `true` taaki multi-line text poora dikhe!)*
+   - **Impact Badge Label (`lblImpact`)**: `Text = ThisItem.ImpactTier & " (" & ThisItem.ImpactScore & "/10)"`
+   - **Status Badge Label (`lblStatus`)**: `Text = ThisItem.Status`
+
+---
+
+### C. PowerApps Form & AI Action Setup (Top Left 60% Container)
+
+#### Form Controls Setup:
+1. `conTopLeftForm` ke andar **Text Input** control insert karein (`txtFeedbackDescription`).
+   - `Mode` = `TextMode.MultiLine`
+   - `Height` = `140`
+2. **AI Button (`btnAnalyzeAI`)**:
+   - `OnSelect` = 
+     ```powerfx
+     Set(varIsAnalyzing, true);
+     Set(varAIResult, 'AnalyzeClientFeedbackAI'.Predict(txtFeedbackDescription.Text));
+     Set(varIsAnalyzing, false);
+     ```
+3. **Submit Button (`btnSubmitFeedback`)**:
+   - `OnSelect` = 
+     ```powerfx
+     Patch(
+         ClientFeedbacks,
+         Defaults(ClientFeedbacks),
+         {
+             Title: "Client Appreciation by " & varUserName,
+             SubmittedBy: varUserName,
+             Description: txtFeedbackDescription.Text,
+             Status: "Pending",
+             SubmittedDate: Now()
+         }
+     );
+     Notify("Feedback submitted to PM for approval!", NotificationType.Success);
+     Reset(txtFeedbackDescription);
+     ```
+
+---
+
+---
+
+## 27. Step-by-Step Guide: PowerApps Main Page Scrolling Setup
+
+Aapne poocha ki **PowerApps mein main page scroll kaise hota hai** — PowerApps Canvas apps mein page scrolling handle karne ke **2 sabse popular aur easy tareeqe** hote hain:
+
+---
+
+### Method 1: Scrollable Screen (Default Canvas Page Scrolling) — *Easiest Way*
+
+Jab aapki screen par bohot saare sections, forms, aur dynamic tables hon jo 100% viewport height (screen size) se aage nikal rahe hain:
+
+#### Kaise Set Karein (Step-by-Step):
+1. PowerApps Studio mein **+ New Screen** par click karein.
+2. Template List se **`Scrollable`** screen select karein (is screen par automatic ek `Canvas1` control lag jata hai jo vertical scrolling permit karta hai).
+3. **Existing Screen Ko Scrollable Banayein**:
+   - Screen object select karein (e.g. `scrFeedback`).
+   - Screen ki **`Height` Property** mein formula likhein: 
+     ```powerfx
+     Max(App.Height, conMainScreen.Height + 50)
+     ```
+   - Isse jab screen par data badhega, PowerApps phone/laptop screen par automatic vertical scrollbar de dega!
+
+---
+
+### Method 2: Main Vertical Container Scrolling (`EnableScrollbar = true`) — *Best Practice ⭐*
+
+Agar aap dynamic Flex Containers (`conMainScreen`) use kar rahe hain:
+
+#### Step-by-Step Setup:
+1. Tree view mein **`conMainScreen`** (Main Parent Container) par click karein.
+2. Property panel mein property dhoondhein: **`EnableScrollbar`**.
+3. Formula set karein: **`true`**
+4. Screen Height setting:
+   - `conMainScreen.Height` = `Parent.Height` (ya `Max(768, conBottomTable.Y + conBottomTable.Height)`).
+
+---
+
+### Method 3: Gallery Scrollbars (Only Bottom Table Scroll)
+
+Agar aap chahte hain ki **Top Row (Form + Cards) Screen par FIXED rahe** aur sirf **Bottom Table Scroll ho**:
+
+1. `conBottomTable` (100% full-width container) ke andar ki Gallery (`galFeedbackHistory`) ko select karein.
+2. Set Gallery property: **`ShowScrollbar = true`**.
+3. Set Gallery Height: `conBottomTable.Height - 60`.
+4. Isse Top Form persistent dikhega aur neeche ki table smooth scroll hogi!
+
+---
+
 *Updated PowerApps Documentation — August 2026 Edition*
-*All SharePoint List Schemas, PowerFx Formulas, AI Text Analyzer Button, Admin Master Switch, Font Tokens, Navigation & Power Automate Email/Export Workflows Complete.*
+*All SharePoint List Schemas, PowerFx Formulas, Layout Container Architectures (60/40 & 100%), Page Scrolling Guides, Dynamic Galleries, Font Tokens, Navigation & Power Automate Email/Export Workflows Complete.*
 

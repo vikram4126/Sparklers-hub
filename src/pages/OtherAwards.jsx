@@ -86,7 +86,7 @@ const OtherAwards = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', gap: '1.25rem', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -104,19 +104,69 @@ const OtherAwards = () => {
         </div>
       )}
 
-      {/* Side-by-Side Main Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
+      {/* TOP ROW: 3 Crisp KPMG Metric Banners (Matching Image Layout - Clean, No Left Border) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', flexShrink: 0 }}>
         
-        {/* LEFT COLUMN: Form */}
-        <div className="glass-panel" style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
-            <Award size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Log External Award</h3>
+        {/* Metric 1: Total Logged */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              TOTAL LOGGED
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#7213ea', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {myExternal.length}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(114, 19, 234, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Award size={20} color="#7213ea" />
+          </div>
+        </div>
+
+        {/* Metric 2: Approved */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              APPROVED AWARDS
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#059669', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {approvedCount}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(5, 150, 105, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle2 size={20} color="#059669" />
+          </div>
+        </div>
+
+        {/* Metric 3: Pending Review */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              PENDING PM REVIEW
+            </span>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#d97706', lineHeight: 1.2, marginTop: '0.2rem' }}>
+              {pendingCount}
+            </div>
+          </div>
+          <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(217, 119, 6, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={20} color="#d97706" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* BOTTOM ROW: External Awards Form Card (Left) + Full History Table (Right) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '1.25rem', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        
+        {/* LEFT CARD: Compact Form */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+            <Award size={18} color="#00338d" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Log External Award</h3>
           </div>
 
-          <form onSubmit={handleOtherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', flex: 1 }}>
+          <form onSubmit={handleOtherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
+              <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>
                 Award Name <span style={{ color: 'var(--accent)' }}>*</span>
               </label>
               <select
@@ -126,125 +176,107 @@ const OtherAwards = () => {
                 required
                 style={{ width: '100%', fontSize: '0.875rem' }}
               >
-                <option value="">— Select Award Type —</option>
+                <option value="" disabled>Select award type...</option>
                 {EXTERNAL_AWARD_TYPES.map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
-              {form.awardName === 'Other' && (
+            </div>
+
+            {form.awardName === 'Other' && (
+              <div>
+                <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>Custom Award Name <span style={{ color: 'var(--accent)' }}>*</span></label>
                 <input
+                  type="text"
                   className="form-input"
-                  style={{ marginTop: '0.5rem', width: '100%', fontSize: '0.875rem' }}
-                  placeholder="Enter award name..."
+                  placeholder="e.g. Star of the Month"
                   value={form.customAwardName}
                   onChange={e => handleOtherChange('customAwardName', e.target.value)}
                   required
+                  style={{ width: '100%', fontSize: '0.875rem' }}
                 />
-              )}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>Platform / Issuer</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. KPMG Global"
+                  value={form.platform}
+                  onChange={e => handleOtherChange('platform', e.target.value)}
+                  style={{ width: '100%', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>Date Received <span style={{ color: 'var(--accent)' }}>*</span></label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={form.dateReceived}
+                  onChange={e => handleOtherChange('dateReceived', e.target.value)}
+                  required
+                  style={{ width: '100%', fontSize: '0.85rem' }}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
-                Platform / Source
-              </label>
-              <input
-                className="form-input"
-                style={{ width: '100%', fontSize: '0.875rem' }}
-                placeholder="e.g. KPMG Encore, Teams..."
-                value={form.platform}
-                onChange={e => handleOtherChange('platform', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
-                Date Received <span style={{ color: 'var(--accent)' }}>*</span>
-              </label>
-              <input
-                type="date"
-                className="form-input"
-                style={{ width: '100%', fontSize: '0.875rem' }}
-                value={form.dateReceived}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => handleOtherChange('dateReceived', e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label" style={{ fontSize: '0.85rem' }}>
-                Description <span style={{ color: 'var(--accent)' }}>*</span>
-              </label>
+              <label className="form-label" style={{ fontSize: '0.82rem', fontWeight: 700 }}>Description / Citation <span style={{ color: 'var(--accent)' }}>*</span></label>
               <textarea
                 className="form-input"
-                style={{ width: '100%', minHeight: '90px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.875rem' }}
-                placeholder="Briefly describe why you received this award..."
+                rows="3"
                 value={form.description}
                 onChange={e => handleOtherChange('description', e.target.value)}
                 required
+                placeholder="Describe why you received this award..."
+                style={{ width: '100%', resize: 'none', fontFamily: 'inherit', fontSize: '0.875rem' }}
               />
             </div>
 
             {error && (
-              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '0.5rem 0.8rem', color: '#dc2626', fontSize: '0.8rem' }}>
                 {error}
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '0.75rem' }}>
-              <Send size={16} /> Submit to PM ({pm})
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', marginTop: 'auto', background: '#00338d', fontWeight: 700 }}>
+              <Send size={15} /> Submit Award ➢
             </button>
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Profile & History Table */}
-        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* RIGHT CARD: Full History Table (Only this card scrolls!) */}
+        <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
           
-          {/* Profile Header & Summary Pills */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+          {/* Table Header & Filters */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.85rem', flexShrink: 0 }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--primary)', fontWeight: 800 }}>My Other Awards Profile</h3>
-              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>External recognition locker for {currentUser}</p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div style={{ background: 'rgba(124, 58, 237, 0.08)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>TOTAL LOGGED</span>
-                <strong style={{ fontSize: '1.1rem', color: '#7c3aed' }}>{myExternal.length}</strong>
-              </div>
-              <div style={{ background: 'rgba(34, 197, 94, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>APPROVED</span>
-                <strong style={{ fontSize: '1.1rem', color: '#16a34a' }}>{approvedCount}</strong>
-              </div>
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '10px', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>PENDING</span>
-                <strong style={{ fontSize: '1.1rem', color: '#d97706' }}>{pendingCount}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem', fontWeight: 700 }}>
-              <Filter size={16} color="var(--primary)" />
-              <span>Filter Awards Profile:</span>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary)', fontWeight: 800 }}>Full External Awards History</h3>
+              <p className="text-muted" style={{ margin: 0, fontSize: '0.8rem' }}>Complete record of all logged non-Sparklers awards</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <select
-                className="form-select"
-                value={platformFilter}
-                onChange={e => setPlatformFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
-              >
-                {platformOptions.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <Filter size={14} color="var(--text-muted)" />
+                <select
+                  className="form-select"
+                  value={platformFilter}
+                  onChange={e => setPlatformFilter(e.target.value)}
+                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                >
+                  {platformOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
 
               <select
                 className="form-select"
                 value={yearFilter}
                 onChange={e => setYearFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+                style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
               >
                 {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
@@ -253,7 +285,7 @@ const OtherAwards = () => {
                 className="form-select"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '8px', width: 'auto' }}
+                style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
               >
                 <option value="All">All Statuses</option>
                 <option value="Approved">Approved</option>
