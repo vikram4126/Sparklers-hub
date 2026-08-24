@@ -322,164 +322,91 @@ Power Apps mein yeh screens banani hain:
 
 ---
 
-## 5. Screen 1 — My Dashboard
+## 5. Screen 1 — My Dashboard (KPMG Command Center)
 
-File reference: UserDashboard.jsx
+File reference: `UserDashboard.jsx`
 
-### A. Header
-- Text: "Welcome, " & User().FullName & "!"
-- Sub text: "Here is your personal Sparklers summary (Year: Oct - Sep)"
-- Button: "Self Nominate" -> Navigate to scrSelfNominate (User role only)
+### 🎨 Layout Architecture (KPMG Modern Enterprise Grid)
+- **Top Bar**: User Avatar, Welcome Title ("Welcome back, [Name]!"), and FY Selector Dropdown (`drpFY`).
+- **Top Row (3 Crisp Metric Banners - No Left Borders)**:
+  - **Metric Banner 1**: Total Won Count (`varMyTotal`) + Navy Trophy Icon Circle.
+  - **Metric Banner 2**: Pending Review Count + Blue Clock Icon Circle.
+  - **Metric Banner 3**: Total Hours Saved (ROI) + Teal Zap Icon Circle.
+- **Bottom Row (100% Full-Width History Table)**:
+  - Header: Title, FY Filter, Category Filter, Status Filter.
+  - Body: Scrollable Gallery (`galMyHistoryTable`) displaying Date, Category, Achievement, Status Badge (`Approved`, `Pending`, `PM Approved`).
 
-### B. Badge Guide Bar (Static strip)
-- Bronze (1), Silver (3), Gold (6), Platinum star(10) starstar(15) starstarstar(20) starstarstarstar(25+)
+---
 
-### C. My Current Badge Card & Fiscal Year Filter
+### 🛠️ PowerApps Controls & Step-by-Step Setup:
 
-#### Dropdown Drop FY Selection (`drpFY`):
-- **Items Formula**: 
-  ```powerapps
-  // Submissions se fiscal years generate aur sort karne ke liye
-  ClearCollect(
-    colFYs,
-    Distinct(
-      AddColumns(
-        Filter(Nominations, NomineeName = User().FullName && Status = "Approved"),
-        "FYLabel",
-        If(
-          Month(SubmittedDate) >= 10,
-          "FY " & Text(Year(SubmittedDate)) & "-" & Right(Text(Year(SubmittedDate) + 1), 2),
-          "FY " & Text(Year(SubmittedDate) - 1) & "-" & Right(Text(Year(SubmittedDate)), 2)
-        )
-      ),
-      FYLabel
+#### Step 1: Create Vertical Container (`conMainDashboard`)
+- `Insert` $\rightarrow$ `Layout` $\rightarrow$ `Blank Vertical Container`
+- `Width` = `Parent.Width`, `Height` = `Parent.Height`, `EnableScrollbar` = `false` *(Locked Main Page!)*
+
+#### Step 2: Add 3 Top Metric Banners (`conMetricBanners`)
+- `Insert` $\rightarrow$ `Blank Horizontal Container` inside `conMainDashboard`.
+- Drop 3 Cards with KPMG colors:
+  1. **Total Won Card**:
+     - Number Label `lblTotalWon.Text` = `CountRows(Filter(Nominations, NomineeName = varUserName && Status = "Approved"))`
+  2. **Pending Review Card**:
+     - Number Label `lblPending.Text` = `CountRows(Filter(Nominations, NomineeName = varUserName && Status = "Pending"))`
+  3. **Hours Saved (ROI) Card**:
+     - Number Label `lblHoursSaved.Text` = `Sum(Filter(Nominations, NomineeName = varUserName && Status = "Approved"), Value(HoursSaved)) & "h"`
+
+#### Step 3: Add Full-Width History Table (`conHistoryTableCard`)
+- `Insert` $\rightarrow$ `Container` inside `conMainDashboard` (`Height` = `Parent.Height - 160`, `Fill` = `White`, `BorderColor` = `#E2E8F0`).
+- **Inner Scroll Gallery (`galMyHistoryTable`)**:
+  - `Insert` $\rightarrow$ `Flexible Height Gallery` inside `conHistoryTableCard`.
+  - Set Gallery `ShowScrollbar` = `true` *(Only table scrolls, page stays locked!)*
+  - `Items` Property =
+    ```powerfx
+    Sort(
+        Filter(
+            Nominations,
+            NomineeName = varUserName &&
+            (drpCategoryFilter.Selected.Value = "All" || Category = drpCategoryFilter.Selected.Value) &&
+            (drpStatusFilter.Selected.Value = "All" || Status = drpStatusFilter.Selected.Value)
+        ),
+        SubmittedDate,
+        Descending
     )
-  );
-  // Default and all time options
-  Collect(colFYs, {Value: "All Time"});
-  colFYs
-  ```
-- **DefaultSelectedItems**: `["FY " & If(Month(Today()) >= 10, Text(Year(Today())), Text(Year(Today()) - 1)) & "-" & Right(If(Month(Today()) >= 10, Text(Year(Today()) + 1), Text(Year(Today()))), 2)]`
+    ```
 
-#### Count approved awards in selected Fiscal Year:
-- **Formula**:
+---
+
+### D. Peer Group Leaderboard (Role-Based Matrix)
+
+- **Peer Group Logic**:
   ```powerapps
-  Set(
-    varMyAwards,
-    Filter(
-      Nominations,
-      NomineeName = User().FullName && 
-      Status = "Approved" &&
-      (
-        drpFY.Selected.Value = "All Time" ||
-        If(
-          Month(SubmittedDate) >= 10,
-          "FY " & Text(Year(SubmittedDate)) & "-" & Right(Text(Year(SubmittedDate) + 1), 2),
-          "FY " & Text(Year(SubmittedDate) - 1) & "-" & Right(Text(Year(SubmittedDate)), 2)
-        ) = drpFY.Selected.Value
-      )
-    )
-  );
-  Set(varMyTotal, CountRows(varMyAwards));
-  ```
-
-#### Badge level formula:
-  ```powerapps
-  Set(varBadge,
-    If(varMyTotal >= 25, "Platinum ⭐⭐⭐⭐",
-    If(varMyTotal >= 20, "Platinum ⭐⭐⭐",
-    If(varMyTotal >= 15, "Platinum ⭐⭐",
-    If(varMyTotal >= 10, "Platinum ⭐",
-    If(varMyTotal >= 6,  "Gold",
-    If(varMyTotal >= 3,  "Silver",
-    If(varMyTotal >= 1,  "Bronze",
-                         "Novice 🩶"
-  ))))))))
-  ```
-  ```
-
-#### Category breakdown gallery:
-- **Items**: `GroupBy(varMyAwards, "EffectiveCategory", "Awards")`
-
-### D. Leaderboard (3-column layout)
-
-- **Layout**:
-  - **Col 1 (Left, flex:1)**: Rank emoji + Name (TL/AM/Manager suffixes included if manager)
-  - **Col 2 (Center, flex:1 justify-center)**: Department Badge Pill
-  - **Col 3 (Right, flex:1 justify-end)**: Dynamic calculated awards count
-- **Items Formula**:
-  ```powerapps
-  // On Dashboard start or switch, identify user peer group
-  Set(varUserLevel, LookUp(Users, DisplayName = varCurrentUser, Role));
+  Set(varUserRole, LookUp(Users, Title = varUserName).Role);
   
+  // Set peer group for dynamic filtering
   If(
-    varUserLevel = "User",
-    // Peer group for standard users
-    ClearCollect(
-      colPeers,
-      {PeerName: "Parteek"}, {PeerName: "Shreya"}, {PeerName: "Ganash lal"},
-      {PeerName: "Vikram"}, {PeerName: "Shantanu"}, {PeerName: "Sukhvindar"}, {PeerName: "Sivani"}
-    ),
-    varUserLevel = "TL",
-    // Peer group for Team Leads
-    ClearCollect(
-      colPeers,
-      {PeerName: "Abhineet"}, {PeerName: "Himanshu"}, {PeerName: "Ameen"}
-    ),
-    varUserLevel = "AM",
-    // Peer group for AMs
-    ClearCollect(
-      colPeers,
-      {PeerName: "Ses"}, {PeerName: "Monam"}
-    ),
-    // Otherwise Management / Managers (AD and Director are excluded to only compare Ashok vs Sol)
-    ClearCollect(
-      colPeers,
-      {PeerName: "Sol"}, {PeerName: "Ashok"}
-    )
+    varUserRole = "User",
+    ClearCollect(colPeers, {PeerName: "Parteek"}, {PeerName: "Shreya"}, {PeerName: "Ganash lal"}, {PeerName: "Vikram"}),
+    varUserRole = "TL",
+    ClearCollect(colPeers, {PeerName: "Abhineet"}, {PeerName: "Himanshu"}, {PeerName: "Ameen"}),
+    varUserRole = "AM",
+    ClearCollect(colPeers, {PeerName: "Ses"}, {PeerName: "Monam"}),
+    ClearCollect(colPeers, {PeerName: "Sol"}, {PeerName: "Ashok"})
   );
-
-  Sort(
-    AddColumns(
-      colPeers,
-      "DisplayName", If(varUserLevel = "User", PeerName, PeerName & " (" & LookUp(Users, DisplayName = PeerName, Role) & ")"),
-      "Department", LookUp(Users, DisplayName = PeerName, Department),
-      "Total", 
-        // Direct awards won by the person
-        CountRows(Filter(Nominations, NomineeName = PeerName && Status = "Approved")) +
-        // + Awards won by all their recursive reportees down the chain
-        CountRows(
-          Filter(
-            Nominations, 
-            Status = "Approved" && 
-            (
-              // Direct reportee of PM/Leader
-              LookUp(Users, DisplayName = NomineeName, PMName) = PeerName ||
-              // Nested reportee 2 levels down
-              LookUp(Users, DisplayName = LookUp(Users, DisplayName = NomineeName, PMName), PMName) = PeerName ||
-              // Nested reportee 3 levels down
-              LookUp(Users, DisplayName = LookUp(Users, DisplayName = LookUp(Users, DisplayName = NomineeName, PMName), PMName), PMName) = PeerName
-            )
-          )
-        )
-    ),
-    Total,
-    Descending
-  )
   ```
-- **Rank emoji per row**:
-  `Switch(ThisItem.Rank, 1, "🥇", 2, "🥈", 3, "🥉", "🏅")`
+
+---
 
 ### F. My Past Wins Table
 - **Items Formula**:
   ```powerapps
   SortByColumns(
-    varMyAwards, // varMyAwards contains the pre-filtered items from step C above
+    Filter(Nominations, NomineeName = varUserName && Status = "Approved"),
     "SubmittedDate", 
     Descending
   )
   ```
-- **Columns**: Date | EffectiveCategory | EffectiveReason
+- **Columns**: Date | EffectiveCategory | EffectiveReason | Hours Saved Badge (if Process & Efficiency)
+
+---
 
 ---
 
@@ -516,221 +443,209 @@ File reference: SelfNominate.jsx
 
 ---
 
-## 7. Screen 3 — Nominate Team Member (PM only)
+## 7. Screen 3 — Nominate Team Member (PM & Manager Only)
 
-File reference: NominationForm.jsx
+File reference: `NominationForm.jsx`
 
-### Components:
-- Nominee dropdown (only PM's team members):
-    Filter(Users, PMName = varCurrentUser)
-- Category dropdown (mandatory)
-- Reason textarea (mandatory)
-- Attachment (optional)
-- Submit button
+### 🎨 Layout Architecture (KPMG Clean 60/40 Split Design)
+- **Top Row (3 KPI Cards)**: Total Team Submissions | Pending Approvals | Team Hours Saved.
+- **Bottom Row**:
+  - **Left Form Card (60%)**: Nominee Dropdown (Only PM's Direct Reportees) | Category Dropdown | Reason Textarea | Hours Saved (if Process & Efficiency).
+  - **Right Table Card (40%)**: Team Nomination History & Status Tracker.
 
-### Submit Formula (PM nomination skips PM queue -> direct to Admin):
-  Patch(
-    Nominations,
-    Defaults(Nominations),
-    {
-      NomineeName:   drpNominee.Selected.Value,
-      Category:      drpCategory.Selected.Value,
-      Reason:        txtReason.Text,
-      Status:        "PMApproved",
-      SubmittedBy:   "PM",
-      SubmittedDate: Now()
-    }
-  );
-  Notify("Nomination submitted!", NotificationType.Success)
+### 🛠️ PowerApps Controls & Step-by-Step Setup:
 
----
-
-## 8. Screen 4 — Winners Board
-
-File reference: LeadershipDashboard.jsx
-
-### Layout:
-- Month filter dropdown (top-right)
-- Weeks grouped by month -> each week shows that Friday's winners
-- Each winner row: Name | EffectiveCategory | EffectiveReason | Monthly badge emoji
-
-### Month Filter:
-  Distinct(
-    AddColumns(
-      Filter(Nominations, Status = "Approved"),
-      "MonthYear", Text(SubmittedDate, "[$-en-IN]mmmm yyyy")
-    ),
-    MonthYear
-  )
-
-### Week Grouping (by Friday of the week):
-  Friday of date = DateAdd(date, (5 - Weekday(date, 2) + 7) Mod 7, Days)
-
-Gallery formula:
-  Filter(
-    Nominations,
-    Status = "Approved" &&
-    Text(FridayOfWeek, "mmmm yyyy") = varSelectedMonth
-  )
-
-### Monthly Badge per person:
-  If(varPersonCount >= 3, "Gold",
-  If(varPersonCount = 2,  "Silver",
-  If(varPersonCount = 1,  "Bronze", "")))
+1. **Nominee Dropdown (`drpNominee`)**:
+   - `Insert` $\rightarrow$ `Dropdown`
+   - `Items` Property = `Filter(Users, PMName = varUserName)` *(Displays only direct reportees!)*
+2. **Category Dropdown (`drpCategory`)**:
+   - `Items` Property = `["Innovation", "Process & Efficiency", "Team Player", "Extra Mile", "Customer Success"]`
+3. **Submit Button (`btnSubmitNomination`)**:
+   - `OnSelect` Property =
+     ```powerfx
+     Patch(
+         Nominations,
+         Defaults(Nominations),
+         {
+             NomineeName: drpNominee.Selected.Title,
+             Category: drpCategory.Selected.Value,
+             Reason: txtReason.Text,
+             SubmittedBy: varUserName,
+             SubmittedDate: Now(),
+             // PM/Manager nomination bypasses PM queue -> Status set to PMApproved (Direct to Admin)
+             Status: "PMApproved"
+         }
+     );
+     Notify("Team nomination submitted and sent directly to Admin for final approval!", NotificationType.Success);
+     Reset(txtReason);
+     ```
 
 ---
 
-## 9. Screen 5 — Team Approvals (PM only)
+## 8. Screen 4 — Winners Board (Leaderboard & Past Winners)
 
-File reference: PMApprovals.jsx
+File reference: `LeadershipDashboard.jsx`
 
-### Pending Feedback Approvals & Detail Modal:
-  - PM pending list mein Har feedback ke saath **`👁️ View Details`** button rahega.
-  - Button click par PM ke saamne **Client Feedback Details Pop-up Modal (`scrViewFeedbackModal`)** khulega:
-    - **Submitted By**: Nominee / User Name
-    - **Date**: Submission Timestamp
-    - **Attachment Status**: `.msg` file / Email Snapshot attachment
-    - **Full Client Email Text**: Entire pasted/uploaded email text so PM can read complete details before decision.
-  - Decision Controls: Impact Level Selector (Standard / High Value / Strategic), **Approve & Tag** button, and **Reject** button (Mandatory Rejection Reason).
+### 🎨 Layout Architecture:
+- **Top Filter Strip**: Month Selector Dropdown (`drpMonthFilter`).
+- **Main Section**: Full-Width Dynamic Winner Cards Gallery (`galWinners`).
 
-### Team Filter Rule (Strict 1st-Level Direct Reportees Only):
-  - Har manager/lead ko sirf wahi reportees aur unke feedbacks/nominations dikhenge jo unke **Direct 1st-Level Reportees** hain (`varMyDirectReportees`).
-  - *Example*: Parteek reports to Abhineet ➔ Abhineet reports to Monam. Monam ko sirf **Abhineet** (Direct) dikhega, Parteek nahi (Reportee of Reportee filtered out).
+### 🛠️ PowerApps Setup:
 
-### Past Actions Table:
-  Filter(
-    Nominations,
-    Status <> "Pending" && NomineeName in varMyDirectReportees
-  )
-
----
-
-## 10. Screen 6 — PM Approve Modal
-
-File reference: PMApprovals.jsx (approve modal section)
-
-### Layout — 3 Sections:
-
-SECTION A: Original Submission (Read-only panel, blue background)
-  - Nominee: varSelectedNom.NomineeName
-  - Category: varSelectedNom.Category
-  - Reason: varSelectedNom.Reason
-
-SECTION B: PM Override (Optional, purple background)
-  - Category dropdown:
-      Default option: "-- Keep original: " & varSelectedNom.Category & " --"
-      Options: Innovation | Team Player | Extra Mile | Customer Success
-  - Reason textarea:
-      Placeholder: "Add your perspective (optional)..."
-  NOTE: Agar PM blank chhodhe to original values use hongi.
-
-SECTION C: Buttons
-  - Cancel -> Back()
-  - Approve & Forward to Admin ->
-      Patch(Nominations, varSelectedNom, {
-        Status:     "PMApproved",
-        PMCategory: If(drpPMCat.Selected.Value = "default", "", drpPMCat.Selected.Value),
-        PMReason:   txtPMReason.Text
-      });
-      Navigate(scrTeamApprovals)
-
-SECTION D: Rejection Logic (Mandatory Reason)
-  - Reject Button OnSelect ->
-      If(
-        IsBlank(Trim(txtRejectReason.Text)),
-        Notify("Rejection reason is MANDATORY before rejecting any nomination or client feedback.", NotificationType.Error),
-        Patch(Nominations, varSelectedNom, {
-          Status: "Rejected",
-          RejectReason: txtRejectReason.Text
-        });
-        Navigate(scrTeamApprovals);
-        Notify("Nomination rejected.", NotificationType.Information)
-      )
+1. **Month Filter Dropdown (`drpMonthFilter`)**:
+   - `Items` Property = 
+     ```powerfx
+     Distinct(
+         AddColumns(
+             Filter(Nominations, Status = "Approved"),
+             "MonthYear", Text(SubmittedDate, "mmmm yyyy")
+         ),
+         MonthYear
+     )
+     ```
+2. **Winners Gallery (`galWinners`)**:
+   - `Insert` $\rightarrow$ `Flexible Height Gallery`
+   - `Items` Property =
+     ```powerfx
+     Filter(
+         Nominations,
+         Status = "Approved" &&
+         (IsBlank(drpMonthFilter.Selected.Value) || Text(SubmittedDate, "mmmm yyyy") = drpMonthFilter.Selected.Value)
+     )
+     ```
+   - **Winner Card Badge Formula**:
+     - `lblBadge.Text` = 
+       ```powerfx
+       If(ThisItem.Category = "Process & Efficiency", "⚡ Efficiency Champion", "🏆 Sparkler Winner")
+       ```
 
 ---
 
-## 11. Screen 7 — Final Approvals (Admin only)
+## 9. Screen 5 & 6 — Team Approvals & Detail Modal (PM / TL Only)
 
-File reference: AdminVerification.jsx
+File reference: `PMApprovals.jsx`
 
-### Section A: Awaiting Final Approval
-  Filter(Nominations, Status = "PMApproved")
-  Columns: Nominee | Effective Category | Effective Reason | Actions
+### 🎨 Layout Architecture:
+- **Top Row**: Pending Review Counter | Approved Count | Rejected Count.
+- **Main Section**: Full-Width Pending Approvals Table (`galPendingApprovals`).
+- **Modal Overlay (`conPMApproveModal`)**: Appears when PM clicks **`👁️ View Details & Approve`**.
 
-### Section B: Pending with PMs
-  Filter(Nominations, Status = "Pending")
-  Columns: Nominee | Category | Reason | Assigned PM/Team | Status
+### 🛠️ PowerApps Controls & Formulas:
 
-### Section C: All Nominations Overview
-  Filter(Nominations, Status <> "PMApproved" && Status <> "Pending")
-  Columns: Nominee | Date | Effective Category | Status | Rejection Reason
+1. **Pending Approvals Table (`galPendingApprovals`)**:
+   - `Items` Property = 
+     ```powerfx
+     Filter(
+         Nominations,
+         Status = "Pending" &&
+         LookUp(Users, Title = NomineeName).PMName = varUserName
+     )
+     ```
+2. **View Details & Approve Button (`btnViewDetails`)**:
+   - `OnSelect` Property = 
+     ```powerfx
+     Set(varSelectedNomination, ThisItem);
+     Set(varShowPMModal, true); // Opens Modal Overlay
+     ```
+3. **Modal Overlay Container (`conPMApproveModal`)**:
+   - `Visible` Property = `varShowPMModal`
+   - **Approve Button (`btnApproveNomination`)**:
+     - `OnSelect` Property =
+       ```powerfx
+       Patch(
+           Nominations,
+           varSelectedNomination,
+           {
+               Status: "PMApproved",
+               PMCategory: If(IsBlank(drpPMCategory.Selected.Value), varSelectedNomination.Category, drpPMCategory.Selected.Value),
+               PMReason: txtPMReason.Text
+           }
+       );
+       Notify("Nomination approved and forwarded to Admin!", NotificationType.Success);
+       Set(varShowPMModal, false);
+       ```
+   - **Reject Button (`btnRejectNomination`)**:
+     - `OnSelect` Property =
+       ```powerfx
+       If(
+           IsBlank(Trim(txtRejectReason.Text)),
+           Notify("Rejection reason is MANDATORY!", NotificationType.Error),
+           Patch(
+               Nominations,
+               varSelectedNomination,
+               {
+                   Status: "Rejected",
+                   RejectReason: txtRejectReason.Text
+               }
+           );
+           Notify("Nomination rejected.", NotificationType.Information);
+           Set(varShowPMModal, false);
+       )
+       ```
 
 ---
 
-## 12. Screen 8 — Admin Approve Modal
+## 10. Screen 7 & 8 — Admin Final Approvals & Verification Modal (Admin Only)
 
-File reference: AdminVerification.jsx (approve modal section)
+File reference: `AdminVerification.jsx`
 
-### Layout — 3 Sections:
+### 🎨 Layout Architecture:
+- **Header Action Bar**: Search Bar | **`Feedback AI Switch (ON/OFF)`** Master Control Button.
+- **Tab 1: Final Approvals Queue**: Nominations approved by PM (`Status = "PMApproved"`).
+- **Tab 2: Pending with PMs Queue**: Nominations pending with PMs (`Status = "Pending"`).
+- **Tab 3: Complete Audit Log Table**: All past approved/rejected nominations.
 
-SECTION A: Original Submission (Read-only, blue panel)
-  - Nominee, Category, Reason from varSelectedNom
+### 🛠️ PowerApps Formulas:
 
-SECTION B: PM Override (Read-only display, purple panel)
-  If(IsBlank(varSelectedNom.PMCategory) && IsBlank(varSelectedNom.PMReason),
-    "PM did not add an override — original values carry forward.",
-    "PM Category: " & varSelectedNom.PMCategory &
-    " | PM Reason: " & varSelectedNom.PMReason
-  )
-
-SECTION C: Admin Override (Optional, green panel)
-  - Category dropdown:
-      Default: "-- Keep: " & EffectiveCategory & " --"
-      EffectiveCategory = If(!IsBlank(PMCategory), PMCategory, Category)
-  - Reason textarea:
-      Placeholder: "Add your final remarks (optional)..."
-
-SECTION D: Buttons
-  - Cancel
-  - Final Approve ->
-      Patch(Nominations, varSelectedNom, {
-        Status:        "Approved",
-        AdminCategory: If(drpAdminCat.Selected.Value = "default", "", drpAdminCat.Selected.Value),
-        AdminReason:   txtAdminReason.Text
-      });
-      Navigate(scrFinalApprovals)
+1. **Final Approval Queue Gallery (`galAdminQueue`)**:
+   - `Items` Property = `Filter(Nominations, Status = "PMApproved")`
+2. **Final Approve Button (`btnAdminApprove`)**:
+   - `OnSelect` Property =
+     ```powerfx
+     Patch(
+         Nominations,
+         varSelectedNomination,
+         {
+             Status: "Approved",
+             AdminCategory: If(IsBlank(drpAdminCategory.Selected.Value), varSelectedNomination.Category, drpAdminCategory.Selected.Value),
+             AdminReason: txtAdminReason.Text
+         }
+     );
+     Notify("Nomination given FINAL APPROVAL!", NotificationType.Success);
+     Set(varShowAdminModal, false);
+     ```
 
 ---
 
-## 13. Screen 9 — Design Generator (Admin only)
+## 11. Screen 9 — Design Generator & Poster Export (Admin Only)
 
-File reference: DesignGeneratorPreview.jsx
+File reference: `DesignGeneratorPreview.jsx`
 
-### Purpose: Weekly winner announcement cards auto-generate karta hai.
+### 🎨 Layout Architecture:
+- **Top Bar**: Week Selector | **"Generate Teams Broadcast Message"** Button | **"Export Poster PDF"** Button.
+- **Card Preview Area**: 4 Category Award Card Templates with KPMG Logo & Winner Name.
 
-### Filter — Current week approved nominations:
-  Filter(
-    Nominations,
-    Status = "Approved" &&
-    Month(SubmittedDate) = Month(Today()) &&
-    Year(SubmittedDate)  = Year(Today()) &&
-    WeekNum(SubmittedDate) = WeekNum(Today())
-  )
+### 🛠️ PowerApps Setup & Power Automate Flow:
 
-### Teams Message Preview (text box):
-  "Congratulations to our Sparklers of the week!" &
-  Char(10) & Char(10) &
-  "This week, we are celebrating:" &
-  Concat(varApprovedThisWeek, Char(10) & "- " & NomineeName & " for " & EffectiveCategory) &
-  Char(10) & Char(10) &
-  "Thank you all!"
-
-### Award Card Gallery:
-  Each card:
-    - Background image: switch by EffectiveCategory (4 different category images)
-    - Category label (top)
-    - Nominee name (bold, bottom)
-    - Week/Month: "Week " & WeekNum(Today()) & ", " & Text(Today(), "mmmm yyyy")
+1. **Teams Message Generator Formula (`btnCopyTeamsMsg.OnSelect`)**:
+   ```powerfx
+   Set(
+       varTeamsAnnouncementText,
+       "🎉 *Congratulations to our Sparklers of the Week!*" & Char(10) & Char(10) &
+       Concat(
+           Filter(Nominations, Status = "Approved" && WeekNum(SubmittedDate) = WeekNum(Today())),
+           "⭐ " & NomineeName & " - " & If(!IsBlank(AdminCategory), AdminCategory, Category) & Char(10)
+       ) & Char(10) &
+       "Great work team! Keep shining! 🚀"
+   );
+   ```
+2. **Poster Export via Power Automate (`btnExportPoster.OnSelect`)**:
+   ```powerfx
+   'GenerateAwardCertificateFlow'.Run(
+       JSON(Filter(Nominations, Status = "Approved" && WeekNum(SubmittedDate) = WeekNum(Today())), JSONFormat.IndentFour)
+   );
+   Notify("Winner posters are being generated and sent to email!", NotificationType.Information);
+   ```
 
 ---
 
